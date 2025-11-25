@@ -10,17 +10,21 @@ import ko_flag from "@assets/flags/ko-flag.svg";
 import uk_flag from "@assets/flags/uk-flag.svg";
 import gr_flag from "@assets/flags/gr-flag.svg";
 import de_flag from "@assets/flags/de-flag.svg";
+import cn_flag from "@assets/flags/cn-flag.svg";
 import { useLanguage } from "@contexts/LanguageContext";
 
 export default function AccountMenu() {
   const { changeLanguage } = useLanguage();
 
-  const [langIcon, setLangIcon] = useState(ko_flag);
+  const [langIcon, setLangIcon] = useState(cn_flag);
   const [langIconState, setLangIconState] = useState(false);
 
   useEffect(() => {
-    const selectedLang = localStorage.getItem("language") || "ko";
+    const selectedLang = localStorage.getItem("language") || "zh";
     switch (selectedLang) {
+      case "zh":
+        setLangIcon(cn_flag);
+        break;
       case "ko":
         setLangIcon(ko_flag);
         break;
@@ -34,7 +38,7 @@ export default function AccountMenu() {
         setLangIcon(gr_flag);
         break;
       default:
-        setLangIcon(ko_flag);
+        setLangIcon(cn_flag);
     }
   }, [langIconState]);
 
@@ -96,6 +100,9 @@ export default function AccountMenu() {
         transformOrigin={{ horizontal: "right", vertical: "top" }}
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
+        <MenuItem onClick={() => handleSelectLangs("zh")}>
+          <Avatar src={cn_flag} sx={{ width: 25, height: 25 }} /> 简体中文
+        </MenuItem>
         <MenuItem onClick={() => handleSelectLangs("ko")}>
           <Avatar src={ko_flag} sx={{ width: 25, height: 25 }} /> 한국어
         </MenuItem>

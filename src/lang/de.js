@@ -2,8 +2,6 @@ export const de = {
   home1: "Dieses Spiel ist eine koreanische Version von Wordle",
   home2: "Sollen wir anfangen?",
   home3: "Wählen Sie einen Schwierigkeitsgrad",
-  home4:
-    "Die Antwort ändert sich jeden Tag um 00:00 Uhr koreanischer Zeit (GMT+9)",
   lv1: "Anfänger",
   lv2: "Mittelstufe",
   lv3: "Fortgeschrittene",
@@ -150,5 +148,17 @@ export const de = {
     wrong: "Kein gültiges Substantiv.",
     play_block:
       "Sie befinden sich bereits in einem Spiel. Bitte drücken Sie die Schaltfläche Schließen.",
+  },
+  notfound: {
+    title: "Seite nicht gefunden",
+    content:
+      "Die gesuchte Seite existiert nicht. Überprüfen Sie die URL oder kehren Sie zur Startseite zurück.",
+    button: "Zur Startseite",
+  },
+  resume: {
+    title: "Unvollständiges Spiel gefunden",
+    desc: "Möchten Sie Ihr vorheriges Spiel fortsetzen?",
+    continue: "Fortsetzen",
+    newGame: "Neues Spiel",
   },
 };

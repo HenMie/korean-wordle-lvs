@@ -2,7 +2,6 @@ export const en = {
   home1: "This game is a Korean version of Wordle",
   home2: "Shall we start?",
   home3: "Select a dificulty level",
-  home4: "The answer changes every day at 00:00 AM",
   lv1: "Beginner",
   lv2: "Intermediate",
   lv3: "Advanced",
@@ -151,6 +150,12 @@ export const en = {
   notfound: {
     title: "Page Not Found",
     content: "The page you're looking for doesn't exist. Check the URL or return to the home page.",
-    button:"Go to Home"
+    button: "Go to Home",
+  },
+  resume: {
+    title: "Unfinished Game Found",
+    desc: "Would you like to continue your previous game?",
+    continue: "Continue",
+    newGame: "New Game",
   },
 };

@@ -1,5 +1,5 @@
 // React
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 
 // Style
@@ -19,7 +19,18 @@ import iconDark from "@assets/wordle-icon-dark.svg";
 import iconColor from "@assets/wordle-icon-color.svg";
 import iconBoth from "@assets/wordle-icon-both.svg";
 
+// Data
+import hardMode from "@assets/hard-mode.json";
+import imdtMode from "@assets/imdt-mode.json";
+import easyMode from "@assets/easy-mode.json";
+
 import { useLanguage } from "@contexts/LanguageContext";
+
+const modeMap = {
+  easy: easyMode,
+  imdt: imdtMode,
+  hard: hardMode,
+};
 
 function HomePage() {
   const { lang } = useLanguage();
@@ -37,27 +48,10 @@ function HomePage() {
       : iconNormal;
 
   const handleNavigation = (difficulty) => {
-    navigate(`/play/${difficulty}`);
+    const wordList = modeMap[difficulty];
+    const randomId = Math.floor(Math.random() * wordList.length);
+    navigate(`/play/${difficulty}/${randomId}`);
   };
-
-  const [currentDateTime, setCurrentDateTime] = useState(() => {
-    const now = new Date();
-    return {
-      date: now.toLocaleDateString(),
-      // time: now.toLocaleTimeString(),
-    };
-  });
-
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      const now = new Date();
-      setCurrentDateTime({
-        date: now.toLocaleDateString(),
-        // time: now.toLocaleTimeString(),
-      });
-    }, 1000);
-    return () => clearInterval(intervalId);
-  }, []);
 
   return (
     <div className="homepage">
@@ -95,10 +89,6 @@ function HomePage() {
           </button>
         </div>
         <div>
-          <p className="homepage__text">{lang.home4}</p>
-          <p className="homepage__text homepage__text--date">
-            {currentDateTime.date}
-          </p>
           <p className="homepage__text homepage__text--edit">
             Made by hwahyeon
           </p>

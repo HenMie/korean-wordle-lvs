@@ -1,6 +1,6 @@
 // React
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useParams, Navigate, useNavigate } from "react-router-dom";
 
 // style
 import { Box } from "@mui/material";
@@ -11,9 +11,9 @@ import Header from "@components/Header.js";
 import CentralMessage from "@components/CentralMessage.js";
 import AnswerPopup from "@components/AnswerModal.js";
 import Keyboard from "@components/Keyboard.js";
+import ResumeGameModal from "@components/ResumeGameModal.js";
 
-// Function & Data
-import getDailyRandomNumber from "@utils/randomNumber.js";
+// Data
 import hardMode from "@assets/hard-mode.json";
 import imdtMode from "@assets/imdt-mode.json";
 import easyMode from "@assets/easy-mode.json";
@@ -23,8 +23,31 @@ import allDeposedWords from "@assets/all-deposed-words.json";
 import { useLanguage } from "@contexts/LanguageContext";
 import { Helmet } from "react-helmet";
 
+const modeMap = {
+  easy: easyMode,
+  imdt: imdtMode,
+  hard: hardMode,
+};
+
+// Helper functions for game state persistence
+const getGameStateKey = (mode) => `wordle_game_${mode}`;
+
+const saveGameState = (mode, state) => {
+  localStorage.setItem(getGameStateKey(mode), JSON.stringify(state));
+};
+
+const loadGameState = (mode) => {
+  const saved = localStorage.getItem(getGameStateKey(mode));
+  return saved ? JSON.parse(saved) : null;
+};
+
+const clearGameState = (mode) => {
+  localStorage.removeItem(getGameStateKey(mode));
+};
+
 function WordleKorPage() {
   const { lang } = useLanguage();
+  const navigate = useNavigate();
   const [pred, setPred] = useState([]); // List of input
   const [colorList, setColorList] = useState([]); // List of color
   const [listLen, setListLen] = useState(5);
@@ -32,54 +55,123 @@ function WordleKorPage() {
   const [centerMsg, setCenterMsg] = useState("");
   const [gotAnswer, setGotAnswer] = useState(false);
   const [failAnswer, setFailAnswer] = useState(false);
+  
+  // States for resume game dialog
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [savedGame, setSavedGame] = useState(null);
+  const [gameInitialized, setGameInitialized] = useState(false);
 
   const MAX_PRED_LENGTH = 30;
 
-  useEffect(() => {}, [failAnswer]);
-
-  // Adjust selected mode
-  const { mode } = useParams();
+  // Get mode and id from URL params
+  const { mode, id } = useParams();
   const jsonData = allDeposedWords;
-  const formattedMode = mode.charAt(0).toUpperCase() + mode.slice(1);
+  const formattedMode = mode ? mode.charAt(0).toUpperCase() + mode.slice(1) : "";
 
-  const modeMap = {
-    easy: easyMode,
-    imdt: imdtMode,
-    hard: hardMode,
-  };
+  const selectedMode = modeMap[mode];
+  
+  // Validate mode and id
+  const wordIndex = parseInt(id, 10);
+  const isValidMode = selectedMode !== undefined;
+  const isValidId = !isNaN(wordIndex) && wordIndex >= 0 && selectedMode && wordIndex < selectedMode.length;
+  
+  // Get the answer (use memo to avoid recalculation, with fallback for invalid cases)
+  const { dict_answer, answer } = useMemo(() => {
+    if (isValidMode && isValidId) {
+      const dictAnswer = selectedMode[wordIndex];
+      return { dict_answer: dictAnswer, answer: dictAnswer.value };
+    }
+    return { dict_answer: null, answer: "" };
+  }, [isValidMode, isValidId, selectedMode, wordIndex]);
 
-  const selectedMode = modeMap[mode] || hardMode;
-  const dict_answer = selectedMode[getDailyRandomNumber.randomNumberAnswer(selectedMode)];
-  const answer = dict_answer.value;
+  // Handle resume game
+  const handleResumeGame = useCallback(() => {
+    if (savedGame) {
+      // Navigate to the saved game's puzzle
+      navigate(`/play/${mode}/${savedGame.wordIndex}`);
+      // Restore the game state
+      setPred(savedGame.pred || []);
+      setColorList(savedGame.colorList || []);
+      setListLen(savedGame.listLen || 5);
+    }
+    setShowResumeModal(false);
+    setGameInitialized(true);
+  }, [savedGame, mode, navigate]);
 
-  function showMessage(m) {
+  // Handle new game
+  const handleNewGame = useCallback(() => {
+    clearGameState(mode);
+    setShowResumeModal(false);
+    setGameInitialized(true);
+  }, [mode]);
+
+  // Check for saved game on mount
+  useEffect(() => {
+    if (!gameInitialized && mode && isValidMode && isValidId) {
+      const saved = loadGameState(mode);
+      if (saved && saved.wordIndex !== wordIndex) {
+        // There's a saved game with a different puzzle
+        setSavedGame(saved);
+        setShowResumeModal(true);
+      } else if (saved && saved.wordIndex === wordIndex) {
+        // Same puzzle, just restore the state
+        setPred(saved.pred || []);
+        setColorList(saved.colorList || []);
+        setListLen(saved.listLen || 5);
+        setGameInitialized(true);
+      } else {
+        setGameInitialized(true);
+      }
+    }
+  }, [mode, wordIndex, gameInitialized, isValidMode, isValidId]);
+
+  // Save game state whenever pred or colorList changes
+  useEffect(() => {
+    if (gameInitialized && mode && pred.length > 0 && !gotAnswer && !failAnswer) {
+      saveGameState(mode, {
+        wordIndex,
+        pred,
+        colorList,
+        listLen
+      });
+    }
+  }, [pred, colorList, listLen, mode, wordIndex, gameInitialized, gotAnswer, failAnswer]);
+
+  // Clear game state when game ends
+  useEffect(() => {
+    if ((gotAnswer || failAnswer) && mode) {
+      clearGameState(mode);
+    }
+  }, [gotAnswer, failAnswer, mode]);
+
+  const showMessage = useCallback((m) => {
     setCenterMsg(m);
     setIsVisible(true);
     setTimeout(() => {
       setIsVisible(false);
     }, 3000);
-  }
+  }, []);
 
-  const updateColorPredList = (pred, answer, listLen) => {
+  const updateColorPredList = useCallback((predList, ans, len) => {
     const updatedColorList = [];
-    const answerArray = answer.split("");
+    const answerArray = ans.split("");
     const answerLetterCount = {};
-    const answerUsed = new Array(answer.length).fill(false);
+    const answerUsed = new Array(ans.length).fill(false);
   
     for (const char of answerArray) {
       answerLetterCount[char] = (answerLetterCount[char] || 0) + 1;
     }
   
-    for (let i = listLen - 5; i < listLen; i++) {
-      const item = pred[i];
+    for (let i = len - 5; i < len; i++) {
+      const item = predList[i];
       if (!item) {
         showMessage(lang.center_msg.lack);
         continue;
       }
   
-      if (answer[i - listLen + 5] === item.value) {
+      if (ans[i - len + 5] === item.value) {
         item.color = "green";
-        answerUsed[i - listLen + 5] = true;
+        answerUsed[i - len + 5] = true;
         answerLetterCount[item.value]--;
         updatedColorList.push("green");
       } else {
@@ -89,9 +181,9 @@ function WordleKorPage() {
       item.deletable = false;
     }
   
-    for (let i = listLen - 5; i < listLen; i++) {
-      const item = pred[i];
-      if (updatedColorList[i - listLen + 5] === "green") continue;
+    for (let i = len - 5; i < len; i++) {
+      const item = predList[i];
+      if (updatedColorList[i - len + 5] === "green") continue;
   
       const charIndex = answerArray.findIndex(
         (char, idx) => char === item.value && !answerUsed[idx]
@@ -101,19 +193,19 @@ function WordleKorPage() {
         item.color = "yellow";
         answerUsed[charIndex] = true;
         answerLetterCount[item.value]--;
-        updatedColorList[i - listLen + 5] = "yellow";
+        updatedColorList[i - len + 5] = "yellow";
       } else {
         item.color = "gray";
-        updatedColorList[i - listLen + 5] = "gray";
+        updatedColorList[i - len + 5] = "gray";
       }
   
       item.deletable = false;
     }
   
     return updatedColorList;
-  };
+  }, [showMessage, lang.center_msg.lack]);
   
-  const handleSubmitButtonClick = () => {
+  const handleSubmitButtonClick = useCallback(() => {
     if (
       pred.length % 5 !== 0 ||
       pred.length === 0 ||
@@ -134,7 +226,7 @@ function WordleKorPage() {
 
     const updatedColorList = updateColorPredList(pred, answer, listLen);
     setPred([...pred]);
-    setColorList(colorList.concat(updatedColorList));
+    setColorList(prevColors => prevColors.concat(updatedColorList));
 
     const correctCount = updatedColorList.filter((color) => color === "green").length;
 
@@ -143,16 +235,33 @@ function WordleKorPage() {
     } else if (pred.length === MAX_PRED_LENGTH) {
       setFailAnswer(true);
     }
-  };
+  }, [pred, jsonData, answer, listLen, updateColorPredList, showMessage, lang.center_msg.lack, lang.center_msg.wrong]);
 
-  const keyboardProps = {
+  const keyboardProps = useMemo(() => ({
     pred,
     setPred,
     gotAnswer,
     listLen,
     showMessage,
     handleSubmitButtonClick,
-  };
+  }), [pred, gotAnswer, listLen, showMessage, handleSubmitButtonClick]);
+
+  // If invalid, redirect to home (this check must be after all hooks)
+  if (!isValidMode || !isValidId) {
+    return <Navigate to="/" replace />;
+  }
+
+  // Don't render the game until initialized (to avoid flicker)
+  if (!gameInitialized && !showResumeModal) {
+    return (
+      <div className="wordle-page">
+        <Helmet>
+          <title>한글 Wordle | {formattedMode} mode</title>
+        </Helmet>
+        <Header />
+      </div>
+    );
+  }
 
   return (
     <div className="wordle-page">
@@ -160,6 +269,15 @@ function WordleKorPage() {
         <title>한글 Wordle | {formattedMode} mode</title>
       </Helmet>
       <Header />
+      
+      {/* Resume Game Modal */}
+      {showResumeModal && (
+        <ResumeGameModal
+          onResume={handleResumeGame}
+          onNewGame={handleNewGame}
+        />
+      )}
+      
       <Box className="wordle-page__answer-board">
         {[...Array(6)].map((_, boxIndex) => (
           <Box key={boxIndex} className="answer-box">

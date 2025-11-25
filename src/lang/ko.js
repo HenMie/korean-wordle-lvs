@@ -2,7 +2,6 @@ export const ko = {
   home1: "이 게임은 Wordle의 한글 변형판입니다",
   home2: "시작해볼까요?",
   home3: "난이도를 선택하세요",
-  home4: "매일 12시 정각에 정답이 바뀌어요",
   lv1: "초급",
   lv2: "중급",
   lv3: "고급",
@@ -153,5 +152,11 @@ export const ko = {
     title: "페이지를 찾을 수 없습니다",
     content: "찾고 있는 페이지가 존재하지 않습니다. URL을 확인하거나 홈으로 돌아가세요.",
     button: "홈으로 이동",
+  },
+  resume: {
+    title: "완료되지 않은 게임이 있습니다",
+    desc: "이전 게임을 계속하시겠습니까?",
+    continue: "계속하기",
+    newGame: "새 게임",
   },
 };
