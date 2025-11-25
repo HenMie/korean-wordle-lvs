@@ -20,17 +20,40 @@ import InfoModal from "./InfoModal.js";
 import Sidebar from "./Sidebar.js";
 import LangBtn from "./LangBtn.js";
 
+// localStorage key for first visit check
+const FIRST_VISIT_KEY = "wordle_has_seen_rules";
+
 function Header() {
   const navi = useNavigate();
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useRecoilState(sidebarState);
   const [shouldRenderSidebar, setShouldRenderSidebar] = useState(false);
 
+  // Show rules modal on first visit
+  useEffect(() => {
+    const hasSeenRules = localStorage.getItem(FIRST_VISIT_KEY);
+    if (!hasSeenRules) {
+      setShowInfoModal(true);
+    }
+  }, []);
+
   const goHome = () => {
     navi("/");
   };
 
-  const toggleInfoModal = () => setShowInfoModal((prev) => !prev);
+  const handleCloseInfoModal = () => {
+    setShowInfoModal(false);
+    // Mark that user has seen the rules
+    localStorage.setItem(FIRST_VISIT_KEY, "true");
+  };
+
+  const toggleInfoModal = () => {
+    if (showInfoModal) {
+      handleCloseInfoModal();
+    } else {
+      setShowInfoModal(true);
+    }
+  };
 
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
 
@@ -67,7 +90,7 @@ function Header() {
           </div>
         </div>
         {shouldRenderSidebar && <Sidebar />}
-        {showInfoModal && <InfoModal onClose={toggleInfoModal} />}
+        {showInfoModal && <InfoModal onClose={handleCloseInfoModal} />}
       </div>
     </div>
   );
