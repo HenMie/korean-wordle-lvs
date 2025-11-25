@@ -9,17 +9,17 @@ const ResumeGameModal = ({ onResume, onNewGame }) => {
       <div className="Content">
         <div className="content_txt">
           <p>{lang.resume?.title || "发现未完成的游戏"}</p>
-          <p style={{ fontSize: "0.9em", marginTop: "10px", color: "#666" }}>
+          <p className="content_txt__desc">
             {lang.resume?.desc || "是否继续之前的游戏？"}
           </p>
         </div>
         <div className="Buttons">
-          <div className="HomeButton" onClick={onResume}>
+          <button className="HomeButton" onClick={onResume}>
             {lang.resume?.continue || "继续游戏"}
-          </div>
-          <div className="HomeButton" onClick={onNewGame}>
+          </button>
+          <button className="HomeButton" onClick={onNewGame}>
             {lang.resume?.newGame || "新游戏"}
-          </div>
+          </button>
         </div>
       </div>
     </div>
@@ -27,4 +27,3 @@ const ResumeGameModal = ({ onResume, onNewGame }) => {
 };
 
 export default ResumeGameModal;
-

@@ -1,112 +1,218 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// 📱 Sidebar 组件样式 - 韩系柔和极简主义
+// ═══════════════════════════════════════════════════════════════════════════
+
 .sidebar {
+  // ─────────────────────────────────────────────────────────────────────────
+  // 遮罩层
+  // ─────────────────────────────────────────────────────────────────────────
+  &__overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 999;
+    animation: fade-in var(--duration-normal) var(--ease-out);
+    
+    body.dark-mode & {
+      background: rgba(0, 0, 0, 0.5);
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 主面板
+  // ─────────────────────────────────────────────────────────────────────────
   &__panel {
-    width: 85%;
-    height: 100vh;
     position: fixed;
     right: 0;
     top: 0;
-    background-color: white;
-    color: black;
+    width: 320px;
+    max-width: 85vw;
+    height: 100vh;
+    height: 100dvh;
+    background: var(--color-bg-tertiary);
+    border-left: 1px solid var(--color-border-light);
     z-index: 1000;
-    animation: sidebar__fall-in 0.7s ease forwards;
     overflow-y: auto;
-    max-height: 100vh;
-
-    -webkit-overflow-scrolling: touch;
-
+    overflow-x: hidden;
+    animation: slide-in-right var(--duration-normal) var(--ease-out);
+    
+    // 优雅的滚动条
     &::-webkit-scrollbar {
-      width: 3px;
+      width: 4px;
     }
+    
     &::-webkit-scrollbar-thumb {
-      background-color: #94a3b8;
-      border-radius: 3px;
+      background-color: var(--color-border-medium);
+      border-radius: var(--radius-full);
     }
+    
     &::-webkit-scrollbar-track {
-      background: #cfcfcf;
+      background: transparent;
+    }
+    
+    body.dark-mode & {
+      background: var(--color-dark-bg-tertiary);
+      border-color: var(--color-dark-border-light);
     }
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // 内容区域
+  // ─────────────────────────────────────────────────────────────────────────
   &__content {
-    padding: 20px;
-    margin-top: 35px;
+    padding: var(--space-8) var(--space-6);
+    padding-top: var(--space-16);
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // 标题
+  // ─────────────────────────────────────────────────────────────────────────
   &__title {
-    font-size: 25px;
-    font-weight: 700;
-    padding-bottom: 15px;
+    font-family: var(--font-serif);
+    font-size: var(--text-2xl);
+    font-weight: var(--font-bold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-6);
+    letter-spacing: var(--tracking-tight);
+    
+    body.dark-mode & {
+      color: var(--color-dark-text-primary);
+    }
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // 选项行
+  // ─────────────────────────────────────────────────────────────────────────
   &__option {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 10px;
+    padding: var(--space-4) 0;
+    border-bottom: 1px solid var(--color-border-light);
+    
+    &:first-of-type {
+      padding-top: 0;
+    }
+    
+    &:last-of-type {
+      border-bottom: none;
+    }
+    
+    body.dark-mode & {
+      border-color: var(--color-dark-border-light);
+    }
   }
 
   &__option-title {
-    font-weight: 700;
-  }
-
-  &__option a {
-    text-decoration: underline;
-    color: black;
-
-    &:hover {
-      font-weight: 700;
-      text-decoration-thickness: 2px;
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    font-weight: var(--font-medium);
+    color: var(--color-text-primary);
+    
+    body.dark-mode & {
+      color: var(--color-dark-text-primary);
     }
   }
 
+  &__option-desc {
+    font-size: var(--text-sm);
+    color: var(--color-text-tertiary);
+    margin-top: var(--space-1);
+    
+    body.dark-mode & {
+      color: var(--color-dark-text-tertiary);
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 链接
+  // ─────────────────────────────────────────────────────────────────────────
+  &__content a {
+    color: var(--color-text-secondary);
+    border-bottom: 1px solid var(--color-border-light);
+    transition: all var(--duration-fast) var(--ease-out);
+    
+    &:hover {
+      color: var(--color-text-primary);
+      border-color: var(--color-text-primary);
+    }
+    
+    body.dark-mode & {
+      color: var(--color-dark-text-secondary);
+      border-color: var(--color-dark-border-light);
+      
+      &:hover {
+        color: var(--color-dark-text-primary);
+        border-color: var(--color-dark-text-primary);
+      }
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 关闭按钮
+  // ─────────────────────────────────────────────────────────────────────────
   &__close-btn {
     position: absolute;
-    top: 15px;
-    right: 20px;
-    background: none;
+    top: var(--space-4);
+    right: var(--space-4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    font-size: var(--text-2xl);
+    color: var(--color-text-tertiary);
+    background: transparent;
     border: none;
-    font-size: 35px;
+    border-radius: var(--radius-lg);
     cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+    
+    &:hover {
+      color: var(--color-text-primary);
+      background: var(--color-bg-secondary);
+    }
+    
+    &:active {
+      transform: scale(0.95);
+    }
+    
+    body.dark-mode & {
+      color: var(--color-dark-text-tertiary);
+      
+      &:hover {
+        color: var(--color-dark-text-primary);
+        background: var(--color-dark-bg-secondary);
+      }
+    }
   }
 
-  &__overlay {
-    width: 15%;
-    height: 100vh;
-    position: fixed;
-    left: 0;
-    top: 0;
-    background-color: #333333;
-    z-index: 1000;
-    animation: sidebar__slide-in 0.7s ease forwards;
-  }
-
+  // ─────────────────────────────────────────────────────────────────────────
+  // 分隔线
+  // ─────────────────────────────────────────────────────────────────────────
   hr {
-    margin-top: 12px;
-    margin-bottom: 12px;
-    color: black;
-    background-color: #333333;
-  }
-
-  body.dark-mode & {
-    .sidebar__panel {
-      color: #c7c7c7;
-      background-color: #333333;
-    }
-
-    .sidebar__content a {
-      color: #c7c7c7;
-    }
-
-    .sidebar__overlay {
-      background-color: #c7c7c7;
+    border: none;
+    height: 1px;
+    background: var(--color-border-light);
+    margin: var(--space-4) 0;
+    
+    body.dark-mode & {
+      background: var(--color-dark-border-light);
     }
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // 关闭动画状态
+  // ─────────────────────────────────────────────────────────────────────────
   &--closed {
     .sidebar__panel {
-      animation: sidebar__fall-out 0.5s ease forwards;
+      animation: slide-out-right var(--duration-fast) var(--ease-in) forwards;
     }
+    
     .sidebar__overlay {
-      animation: sidebar__slide-out 0.5s ease forwards;
+      animation: fade-in var(--duration-fast) var(--ease-in) reverse forwards;
     }
   }
 
@@ -115,42 +221,24 @@
   }
 }
 
-@keyframes sidebar__slide-in {
-  0% {
-    left: -100%;
-    opacity: 0;
-  }
-  100% {
-    left: 0;
-    opacity: 0.9;
-  }
-}
+// ═══════════════════════════════════════════════════════════════════════════
+// 📱 响应式设计
+// ═══════════════════════════════════════════════════════════════════════════
 
-@keyframes sidebar__slide-out {
-  0% {
-    width: 15%;
-    opacity: 0.9;
-  }
-  100% {
-    width: 0;
-    opacity: 0;
-  }
-}
-
-@keyframes sidebar__fall-in {
-  0% {
-    top: -100%;
-  }
-  100% {
-    top: 0;
-  }
-}
-
-@keyframes sidebar__fall-out {
-  0% {
-    top: 0;
-  }
-  100% {
-    top: -100%;
+@media (max-width: 640px) {
+  .sidebar {
+    &__panel {
+      width: 100%;
+      max-width: 100vw;
+    }
+    
+    &__content {
+      padding: var(--space-6) var(--space-4);
+      padding-top: var(--space-16);
+    }
+    
+    &__title {
+      font-size: var(--text-xl);
+    }
   }
 }

@@ -1,14 +1,45 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// 💬 Toast 消息组件样式 - 韩系柔和极简主义
+// ═══════════════════════════════════════════════════════════════════════════
+
 .center-message {
-  font-family: "Orbit";
-  position: absolute;
-  top: 20%;
+  position: fixed;
+  top: 120px;
   left: 50%;
-  width: 270px;
-  transform: translate(-50%, -50%);
-  background-color: black;
-  color: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+  transform: translateX(-50%);
+  max-width: 300px;
+  width: max-content;
+  padding: var(--space-4) var(--space-6);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-inverse);
+  background-color: var(--color-text-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
   text-align: center;
+  z-index: 200;
+  
+  // 入场动画
+  animation: toast-in var(--duration-normal) var(--ease-spring);
+  
+  // 暗色模式
+  body.dark-mode & {
+    background-color: var(--color-dark-bg-elevated);
+    color: var(--color-dark-text-primary);
+    border: 1px solid var(--color-dark-border-light);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 📱 响应式设计
+// ═══════════════════════════════════════════════════════════════════════════
+
+@media (max-width: 640px) {
+  .center-message {
+    top: 100px;
+    max-width: calc(100vw - var(--space-8));
+    padding: var(--space-3) var(--space-5);
+    font-size: var(--text-xs);
+  }
 }

@@ -1,59 +1,110 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// 🔍 404 页面样式 - 韩系柔和极简主义
+// ═══════════════════════════════════════════════════════════════════════════
+
 .notfound {
-  text-align: center;
-  font-family: "Orbit";
-  margin-top: 50px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-primary);
+  padding: var(--space-4);
 
   &__content {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-
-  &__title {
-    font-size: 28px;
-    font-weight: bold;
-    margin-bottom: 20px;
+    max-width: 400px;
+    text-align: center;
+    animation: fade-in-up var(--duration-slow) var(--ease-out);
   }
 
   &__image {
-    width: 50%;
+    width: 60%;
+    max-width: 200px;
     height: auto;
     display: block;
-    margin: 20px auto;
+    margin: 0 auto var(--space-8);
+    opacity: 0.8;
   }
 
-  &__text {
-    font-size: 18px;
-    margin-bottom: 15px;
-  }
-
-  &__link {
-    display: inline-block;
-    padding: 10px 15px;
-    font-size: 18px;
-    text-decoration: none;
-    color: black;
-    border: 2px solid black;
-    border-radius: 8px;
-    transition: background 0.3s, color 0.3s;
-
-    &:hover {
-      background: black;
-      color: white;
+  &__title {
+    font-family: var(--font-serif);
+    font-size: var(--text-3xl);
+    font-weight: var(--font-bold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-4);
+    letter-spacing: var(--tracking-tight);
+    
+    body.dark-mode & {
+      color: var(--color-dark-text-primary);
     }
   }
 
-  body.dark-mode & {
-    color: #e0e0e0;
+  &__text {
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-8);
+    line-height: var(--leading-relaxed);
+    
+    body.dark-mode & {
+      color: var(--color-dark-text-secondary);
+    }
+  }
 
-    &__link {
-      color: #bbb;
-      border-color: #bbb;
-
+  &__link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-3) var(--space-6);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    font-weight: var(--font-medium);
+    color: var(--color-text-primary);
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    transition: all var(--duration-fast) var(--ease-out);
+    
+    &:hover {
+      background: var(--color-text-primary);
+      border-color: var(--color-text-primary);
+      color: var(--color-text-inverse);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      text-decoration: none;
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+    
+    body.dark-mode & {
+      color: var(--color-dark-text-primary);
+      background: var(--color-dark-bg-tertiary);
+      border-color: var(--color-dark-border-light);
+      
       &:hover {
-        background: #bbb;
-        color: #222;
+        background: var(--color-dark-text-primary);
+        border-color: var(--color-dark-text-primary);
+        color: var(--color-dark-bg-primary);
       }
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 📱 响应式设计
+// ═══════════════════════════════════════════════════════════════════════════
+
+@media (max-width: 640px) {
+  .notfound {
+    &__title {
+      font-size: var(--text-2xl);
+    }
+    
+    &__text {
+      font-size: var(--text-sm);
     }
   }
 }

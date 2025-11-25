@@ -1,78 +1,300 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// 🏠 主页样式 - 韩系柔和极简主义
+// ═══════════════════════════════════════════════════════════════════════════
+
 .homepage {
-  margin: 70px auto 0;
-  font-family: "Orbit";
-  width: 100%;
-  max-width: 1200px;
-  padding: 0 16px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-top: 70px; // Header 高度
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--color-bg-primary);
+  
+  // 微妙的背景纹理
+  background-image: 
+    radial-gradient(
+      ellipse at 50% 0%,
+      var(--color-bg-secondary) 0%,
+      transparent 60%
+    );
 
   &__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
+    padding: var(--space-8) var(--space-4);
+    max-width: 480px;
+    width: 100%;
+    gap: var(--space-8);
+    
+    // 入场动画
+    animation: fade-in-up var(--duration-slow) var(--ease-out);
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Logo 区域
+  // ─────────────────────────────────────────────────────────────────────────
   &__icon {
-    margin-top: 50px;
+    width: 80px;
+    height: 80px;
+    margin-bottom: var(--space-2);
+    filter: drop-shadow(var(--shadow-sm));
+    transition: transform var(--duration-normal) var(--ease-spring);
+    
+    &:hover {
+      transform: scale(1.05) rotate(2deg);
+    }
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // 标题区域
+  // ─────────────────────────────────────────────────────────────────────────
+  &__title-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  
+  &__title {
+    font-family: var(--font-serif);
+    font-size: var(--text-4xl);
+    font-weight: var(--font-bold);
+    color: var(--color-text-primary);
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-tight);
+    
+    // 优雅的文字阴影
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+  
+  &__subtitle {
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    font-weight: var(--font-normal);
+    color: var(--color-text-secondary);
+    letter-spacing: var(--tracking-wide);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 文字内容
+  // ─────────────────────────────────────────────────────────────────────────
   &__text {
-    font-size: 18px;
-    margin: 10px;
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    color: var(--color-text-secondary);
+    margin: 0;
 
     &--start {
-      font-size: 20px;
-      font-weight: 800;
-      margin: 15px;
+      font-size: var(--text-lg);
+      font-weight: var(--font-medium);
+      color: var(--color-text-primary);
     }
 
     &--level {
-      font-size: 17px;
-      font-weight: 700;
-      margin: 15px;
+      font-size: var(--text-sm);
+      font-weight: var(--font-normal);
+      color: var(--color-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-wide);
+      margin-bottom: var(--space-3);
     }
 
-    &--date {
-      font-weight: bold;
-      padding-top: 25px;
+    &--edit {
+      font-size: var(--text-xs);
+      color: var(--color-text-tertiary);
+      
+      a {
+        color: var(--color-text-secondary);
+        border-bottom: 1px solid var(--color-border-light);
+        transition: all var(--duration-fast) var(--ease-out);
+        
+        &:hover {
+          color: var(--color-text-primary);
+          border-color: var(--color-text-primary);
+        }
+      }
     }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 难度选择按钮组
+  // ─────────────────────────────────────────────────────────────────────────
+  &__buttons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    width: 100%;
+    max-width: 280px;
   }
 
   &__button {
-    font-family: Arial;
-    font-size: 18px;
-    color: black;
-    padding: 10px 17px;
-    border-radius: 12px;
-    border: 2px solid black;
-    margin-bottom: 20px;
-    margin-right: 5px;
-    transition: background 0.3s, color 0.3s;
-
-    &:last-child {
-      margin-right: 0;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: var(--space-4) var(--space-6);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    font-weight: var(--font-medium);
+    color: var(--color-text-primary);
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+    overflow: hidden;
+    
+    // 悬浮效果
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to right,
+        transparent,
+        var(--color-accent-soft),
+        transparent
+      );
+      opacity: 0;
+      transition: opacity var(--duration-fast) var(--ease-out);
+    }
+    
+    &:hover {
+      border-color: var(--color-border-medium);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+      
+      &::before {
+        opacity: 1;
+      }
+    }
+    
+    &:active {
+      transform: translateY(0);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--shadow-focus);
+      border-color: var(--color-accent);
     }
 
-    &:hover {
-      background-color: black;
-      color: white;
+    // 难度标签
+    &--easy::after {
+      content: '初级';
+      position: absolute;
+      right: var(--space-4);
+      font-size: var(--text-xs);
+      color: var(--color-correct);
+      opacity: 0.8;
+    }
+    
+    &--imdt::after {
+      content: '中级';
+      position: absolute;
+      right: var(--space-4);
+      font-size: var(--text-xs);
+      color: var(--color-present);
+      opacity: 0.8;
+    }
+    
+    &--hard::after {
+      content: '高级';
+      position: absolute;
+      right: var(--space-4);
+      font-size: var(--text-xs);
+      color: #dc2626;
+      opacity: 0.8;
+    }
+
+    // 交错入场动画
+    @for $i from 1 through 3 {
+      &:nth-child(#{$i}) {
+        animation: fade-in-up var(--duration-normal) var(--ease-out);
+        animation-delay: calc(#{$i} * 80ms);
+        animation-fill-mode: both;
+      }
     }
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // 页脚区域
+  // ─────────────────────────────────────────────────────────────────────────
+  &__footer {
+    margin-top: auto;
+    padding: var(--space-6) var(--space-4);
+    text-align: center;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 暗色模式
+  // ─────────────────────────────────────────────────────────────────────────
   body.dark-mode & {
-    color: #e0e0e0;
-
-    &__text {
-      color: #cccccc;
+    background-image: 
+      radial-gradient(
+        ellipse at 50% 0%,
+        var(--color-dark-bg-secondary) 0%,
+        transparent 60%
+      );
+    
+    &__title {
+      color: var(--color-dark-text-primary);
     }
-
+    
     &__button {
-      background-color: #333;
-      color: #fff;
-      border-color: #444;
-
+      background: var(--color-dark-bg-tertiary);
+      border-color: var(--color-dark-border-light);
+      color: var(--color-dark-text-primary);
+      
       &:hover {
-        background-color: #fff;
-        color: #000;
-        border-color: #333;
+        background: var(--color-dark-bg-elevated);
+        border-color: var(--color-dark-border-medium);
       }
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 📱 响应式设计
+// ═══════════════════════════════════════════════════════════════════════════
+
+@media (max-width: 640px) {
+  .homepage {
+    &__title {
+      font-size: var(--text-3xl);
+    }
+    
+    &__icon {
+      width: 64px;
+      height: 64px;
+    }
+    
+    &__buttons {
+      max-width: 260px;
+    }
+  }
+}
+
+@media (max-width: 370px) {
+  .homepage {
+    &__content {
+      padding: var(--space-6) var(--space-3);
+      gap: var(--space-6);
+    }
+    
+    &__title {
+      font-size: var(--text-2xl);
+    }
+    
+    &__button {
+      padding: var(--space-3) var(--space-5);
     }
   }
 }

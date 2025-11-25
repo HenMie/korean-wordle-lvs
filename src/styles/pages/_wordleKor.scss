@@ -1,204 +1,404 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// 🎮 游戏页面样式 - 韩系柔和极简主义
+// ═══════════════════════════════════════════════════════════════════════════
+
 .wordle-page {
-  margin-top: 70px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-top: 70px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--color-bg-primary);
+  
+  // 微妙的背景渐变 - 营造沉浸感
+  background-image: 
+    radial-gradient(
+      ellipse at 50% 100%,
+      var(--color-bg-secondary) 0%,
+      transparent 50%
+    );
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // 📊 答案盘面
+  // ─────────────────────────────────────────────────────────────────────────
   &__answer-board {
-    padding-bottom: 15px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: var(--space-6) var(--space-4);
+    gap: var(--tile-gap);
+    max-width: 350px;
     width: 100%;
-    .answer-box {
-      display: flex;
-      justify-content: center;
-      text-align: center;
-      .green {
-        background-color: #6aaa64;
-        border: 2px solid #6aaa64;
-      }
-      .yellow {
-        background-color: #dfca6c;
-        border: 2px solid #dfca6c;
-      }
-      .gray {
-        background-color: #94a3b8;
-        border: 2px solid #94a3b8;
-      }
-      .animate-color {
-        animation: rotate-360 1.5s ease-in-out !important;
-      }
-      .animate-pop {
-        animation: answer-up-down 0.5s ease;
-      }
-    }
+    
+    // 入场动画
+    animation: fade-in var(--duration-normal) var(--ease-out);
+  }
 
-    .answer-box div {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 2px solid #d3d6da;
-      border-radius: 3px;
-      padding: 5px;
-      margin: 3px;
-      width: 51px;
-      height: 51px;
-      font-size: 22px;
-      font-weight: 700;
-      animation: start-pop 0.3s ease;
+  // ─────────────────────────────────────────────────────────────────────────
+  // 行容器
+  // ─────────────────────────────────────────────────────────────────────────
+  .answer-box {
+    display: flex;
+    justify-content: center;
+    gap: var(--tile-gap);
+    
+    // 抖动动画类
+    &.shake {
+      animation: shake var(--duration-slow) var(--ease-out);
     }
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // 单个格子 (Tile)
+  // ─────────────────────────────────────────────────────────────────────────
+  .answer-box div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--tile-size);
+    height: var(--tile-size);
+    font-family: var(--font-sans);
+    font-size: var(--text-2xl);
+    font-weight: var(--font-bold);
+    color: var(--color-text-primary);
+    background: var(--color-bg-tertiary);
+    border: 2px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    transition: border-color var(--duration-fast) var(--ease-out);
+    
+    // 输入时边框变深
+    &:not(:empty) {
+      border-color: var(--color-border-medium);
+    }
+    
+    // 3D 翻转需要的属性
+    transform-style: preserve-3d;
+    backface-visibility: visible;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 状态颜色类
+  // ─────────────────────────────────────────────────────────────────────────
+  .answer-box {
+    .green {
+      --flip-color: var(--color-correct);
+      background-color: var(--color-correct);
+      border-color: var(--color-correct);
+      color: #ffffff;
+    }
+    
+    .yellow {
+      --flip-color: var(--color-present);
+      background-color: var(--color-present);
+      border-color: var(--color-present);
+      color: #ffffff;
+    }
+    
+    .gray {
+      --flip-color: var(--color-absent);
+      background-color: var(--color-absent);
+      border-color: var(--color-absent);
+      color: #ffffff;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 动画类
+  // ─────────────────────────────────────────────────────────────────────────
+  
+  // 输入字母时的 Pop 动画
+  .animate-pop {
+    animation: letter-pop var(--duration-fast) var(--ease-spring);
+  }
+  
+  // 翻转揭示颜色动画 - 依次翻转
+  .animate-color {
+    animation: flip-with-color var(--duration-slow) var(--ease-in-out) forwards;
+    
+    // 每个格子依次翻转，营造期待感
+    &:nth-child(1) { animation-delay: calc(0 * var(--flip-delay-step)); }
+    &:nth-child(2) { animation-delay: calc(1 * var(--flip-delay-step)); }
+    &:nth-child(3) { animation-delay: calc(2 * var(--flip-delay-step)); }
+    &:nth-child(4) { animation-delay: calc(3 * var(--flip-delay-step)); }
+    &:nth-child(5) { animation-delay: calc(4 * var(--flip-delay-step)); }
+  }
+  
+  // 获胜庆祝动画
+  .animate-win {
+    animation: win-bounce var(--duration-slower) var(--ease-spring);
+    
+    &:nth-child(1) { animation-delay: calc(0 * 100ms); }
+    &:nth-child(2) { animation-delay: calc(1 * 100ms); }
+    &:nth-child(3) { animation-delay: calc(2 * 100ms); }
+    &:nth-child(4) { animation-delay: calc(3 * 100ms); }
+    &:nth-child(5) { animation-delay: calc(4 * 100ms); }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ⌨️ 键盘区域
+  // ─────────────────────────────────────────────────────────────────────────
   .keyboard {
-    .raw1,
-    .raw2,
-    .raw3 {
-      display: flex;
-      justify-content: center;
-      padding-left: 8px;
-      padding-right: 8px;
+    width: 100%;
+    max-width: 500px;
+    padding: var(--space-3) var(--space-2);
+    padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+    background: var(--color-bg-secondary);
+    border-top: 1px solid var(--color-border-light);
+    
+    // 柔和的毛玻璃效果
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .keyboard .raw1,
+  .keyboard .raw2,
+  .keyboard .raw3 {
+    display: flex;
+    justify-content: center;
+    gap: var(--key-gap);
+    margin-bottom: var(--key-gap);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  // 第二行稍微缩进
+  .keyboard .raw2 {
+    padding: 0 3%;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 键盘按键
+  // ─────────────────────────────────────────────────────────────────────────
+  .keyboard button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--key-width);
+    height: var(--key-height);
+    padding: 0 var(--space-2);
+    font-family: var(--font-sans);
+    font-size: var(--text-lg);
+    font-weight: var(--font-semibold);
+    color: var(--color-text-primary);
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    
+    &:hover:not(:disabled) {
+      background: var(--color-bg-elevated);
+      border-color: var(--color-border-medium);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    &:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+    
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  // 功能键（提交、删除）
+  .keyboard .submit__btn,
+  .keyboard .remove_btn {
+    min-width: 65px;
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 键盘状态颜色
+  // ─────────────────────────────────────────────────────────────────────────
+  .keyboard {
+    .green {
+      background-color: var(--color-correct);
+      border-color: var(--color-correct-border);
+      color: #ffffff;
+      
+      &:hover:not(:disabled) {
+        background-color: var(--color-correct-border);
+      }
+    }
+    
+    .yellow {
+      background-color: var(--color-present);
+      border-color: var(--color-present-border);
+      color: #ffffff;
+      
+      &:hover:not(:disabled) {
+        background-color: var(--color-present-border);
+      }
+    }
+    
+    .gray {
+      background-color: var(--color-absent);
+      border-color: var(--color-absent-border);
+      color: #ffffff;
+      
+      &:hover:not(:disabled) {
+        background-color: var(--color-absent-border);
+      }
+    }
+  }
+
+  // 按键动画
+  .keyboard .animate-button {
+    animation: key-press var(--duration-fast) var(--ease-spring);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 🌙 暗色模式
+  // ─────────────────────────────────────────────────────────────────────────
+  body.dark-mode & {
+    background-image: 
+      radial-gradient(
+        ellipse at 50% 100%,
+        var(--color-dark-bg-secondary) 0%,
+        transparent 50%
+      );
+    
+    .answer-box div {
+      background: var(--color-dark-bg-tertiary);
+      border-color: var(--color-dark-border-light);
+      color: var(--color-dark-text-primary);
+      
+      &:not(:empty) {
+        border-color: var(--color-dark-border-medium);
+      }
+    }
+    
+    .keyboard {
+      background: var(--color-dark-bg-secondary);
+      border-color: var(--color-dark-border-light);
+    }
+    
+    .keyboard button {
+      background: var(--color-dark-bg-tertiary);
+      border-color: var(--color-dark-border-light);
+      color: var(--color-dark-text-primary);
+      
+      &:hover:not(:disabled) {
+        background: var(--color-dark-bg-elevated);
+        border-color: var(--color-dark-border-medium);
+      }
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 🎨 色盲模式
+  // ─────────────────────────────────────────────────────────────────────────
+  body.color-mode & {
+    .answer-box {
       .green {
-        background-color: #6aaa64;
-        border: 2px solid #6aaa64;
+        --flip-color: var(--color-correct-cb);
+        background-color: var(--color-correct-cb);
+        border-color: var(--color-correct-cb);
       }
       .yellow {
-        background-color: #dfca6c;
-        border: 2px solid #dfca6c;
-      }
-      .gray {
-        background-color: #94a3b8;
-        border: 2px solid #94a3b8;
-      }
-      .animate-button {
-        animation: button-click-animation 0.3s;
+        --flip-color: var(--color-present-cb);
+        background-color: var(--color-present-cb);
+        border-color: var(--color-present-cb);
       }
     }
-    .raw2 {
-      padding-left: 5%;
-      padding-right: 5%;
-    }
-
-    .raw1 button,
-    .raw2 button,
-    .raw3 button {
-      color: black;
-      font-size: 20px;
-      font-weight: bold;
-      border: 0.5px solid #d3d6da;
-      margin: 2px;
-      padding: 8px;
-      width: 100%;
-      max-width: 50px;
-      height: 57px;
-      // aspect-ratio: 1 / 1; /* 1:1 비율 */
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 5px;
-    }
-    .submit__btn {
-      min-width: 70px;
-    }
-  }
-
-  body.color-mode & {
-    &__answer-board {
-      .answer-box {
-        .green {
-          background-color: #f5793a;
-          border: 2px solid #f5793a;
-        }
-        .yellow {
-          background-color: #85c0f9;
-          border: 2px solid #85c0f9;
-        }
-      }
-    }
+    
     .keyboard {
-      .raw1,
-      .raw2,
-      .raw3 {
-        .green {
-          background-color: #f5793a;
-          border: 2px solid #f5793a;
-        }
-        .yellow {
-          background-color: #85c0f9;
-          border: 2px solid #85c0f9;
-        }
+      .green {
+        background-color: var(--color-correct-cb);
+        border-color: var(--color-correct-cb);
+      }
+      .yellow {
+        background-color: var(--color-present-cb);
+        border-color: var(--color-present-cb);
       }
     }
   }
 }
 
-@keyframes start-pop {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
+// ═══════════════════════════════════════════════════════════════════════════
+// 📱 响应式设计
+// ═══════════════════════════════════════════════════════════════════════════
 
-@keyframes answer-up-down {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-3.5px);
-  }
-}
-
-@keyframes rotate-360 {
-  from {
-    transform: rotateX(0deg);
-  }
-  to {
-    transform: rotateX(360deg);
-  }
-}
-
-@keyframes button-click-animation {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-@media (max-width: 465px) {
+@media (max-width: 500px) {
   .wordle-page {
-    .keyboard {
-      .raw1 button,
-      .raw2 button,
-      .raw3 button {
-        font-size: 15px;
-      }
-      .raw3 .submit_btn {
-        min-width: 45px;
-      }
+    .answer-box div {
+      width: var(--tile-size-mobile);
+      height: var(--tile-size-mobile);
+      font-size: var(--text-xl);
+    }
+    
+    .keyboard button {
+      min-width: 36px;
+      height: 50px;
+      font-size: var(--text-base);
+      padding: 0 var(--space-1);
+    }
+    
+    .keyboard .submit__btn,
+    .keyboard .remove_btn {
+      min-width: 50px;
+      font-size: var(--text-xs);
     }
   }
 }
 
 @media (max-width: 370px) {
   .wordle-page {
+    --tile-gap: 4px;
+    --key-gap: 4px;
+    
+    .answer-box div {
+      width: 44px;
+      height: 44px;
+      font-size: var(--text-lg);
+    }
+    
+    .keyboard button {
+      min-width: 30px;
+      height: 46px;
+      font-size: var(--text-sm);
+      border-radius: var(--radius-sm);
+    }
+    
+    .keyboard .submit__btn,
+    .keyboard .remove_btn {
+      min-width: 42px;
+    }
+  }
+}
+
+// 横屏模式优化
+@media (max-height: 600px) and (orientation: landscape) {
+  .wordle-page {
+    &__answer-board {
+      padding: var(--space-2) var(--space-4);
+    }
+    
+    .answer-box div {
+      width: 40px;
+      height: 40px;
+      font-size: var(--text-lg);
+    }
+    
     .keyboard {
-      .raw1 button,
-      .raw2 button,
-      .raw3 button {
-        font-size: 13px;
-        margin: 1.5px;
-        padding: 6px;
-        max-width: 45px;
-        aspect-ratio: auto;
-      }
-      .submit__btn {
-        min-width: 40px;
-      }
+      padding: var(--space-2);
+    }
+    
+    .keyboard button {
+      height: 44px;
     }
   }
 }

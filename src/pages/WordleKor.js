@@ -1,5 +1,5 @@
 // React
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useParams, Navigate, useNavigate } from "react-router-dom";
 
 // style
@@ -55,6 +55,8 @@ function WordleKorPage() {
   const [centerMsg, setCenterMsg] = useState("");
   const [gotAnswer, setGotAnswer] = useState(false);
   const [failAnswer, setFailAnswer] = useState(false);
+  const [shakeRow, setShakeRow] = useState(-1); // 抖动的行索引
+  const [winRow, setWinRow] = useState(-1); // 获胜动画的行索引
   
   // States for resume game dialog
   const [showResumeModal, setShowResumeModal] = useState(false);
@@ -144,13 +146,22 @@ function WordleKorPage() {
     }
   }, [gotAnswer, failAnswer, mode]);
 
+  // 触发行抖动动画
+  const triggerShake = useCallback((rowIndex) => {
+    setShakeRow(rowIndex);
+    setTimeout(() => setShakeRow(-1), 500);
+  }, []);
+
   const showMessage = useCallback((m) => {
     setCenterMsg(m);
     setIsVisible(true);
+    // 同时触发当前行的抖动
+    const currentRow = Math.floor(pred.length / 5);
+    triggerShake(currentRow);
     setTimeout(() => {
       setIsVisible(false);
     }, 3000);
-  }, []);
+  }, [pred.length, triggerShake]);
 
   const updateColorPredList = useCallback((predList, ans, len) => {
     const updatedColorList = [];
@@ -229,11 +240,21 @@ function WordleKorPage() {
     setColorList(prevColors => prevColors.concat(updatedColorList));
 
     const correctCount = updatedColorList.filter((color) => color === "green").length;
+    const currentRow = Math.floor((pred.length - 1) / 5);
 
     if (correctCount === 5) {
-      setGotAnswer(true);
+      // 延迟触发获胜动画，等翻转完成后
+      setTimeout(() => {
+        setWinRow(currentRow);
+      }, 5 * 150 + 500); // 5个格子翻转 + 最后一个动画时间
+      
+      setTimeout(() => {
+        setGotAnswer(true);
+      }, 5 * 150 + 1200); // 再等获胜动画
     } else if (pred.length === MAX_PRED_LENGTH) {
-      setFailAnswer(true);
+      setTimeout(() => {
+        setFailAnswer(true);
+      }, 5 * 150 + 500);
     }
   }, [pred, jsonData, answer, listLen, updateColorPredList, showMessage, lang.center_msg.lack, lang.center_msg.wrong]);
 
@@ -280,19 +301,34 @@ function WordleKorPage() {
       
       <Box className="wordle-page__answer-board">
         {[...Array(6)].map((_, boxIndex) => (
-          <Box key={boxIndex} className="answer-box">
+          <Box 
+            key={boxIndex} 
+            className={`answer-box ${shakeRow === boxIndex ? 'shake' : ''}`}
+          >
             {[...Array(5)].map((_, itemIndex) => {
               const index = boxIndex * 5 + itemIndex;
               const valueExists = !!pred[index]?.value;
-              const animationClass = valueExists ? "animate-pop" : "";
               const colorClass = colorList[index];
-              const animationColorClass = colorClass
-                ? `${colorClass} animate-color`
-                : "";
+              
+              // 动画类名逻辑
+              let animationClass = '';
+              if (valueExists && !colorClass) {
+                // 刚输入的字母 - Pop 动画
+                animationClass = 'animate-pop';
+              } else if (colorClass) {
+                // 有颜色 - 翻转动画
+                animationClass = 'animate-color';
+              }
+              
+              // 获胜动画
+              if (winRow === boxIndex && colorClass === 'green') {
+                animationClass += ' animate-win';
+              }
+              
               return (
                 <div
                   key={index}
-                  className={`${animationColorClass} ${animationClass}`}
+                  className={`${colorClass || ''} ${animationClass}`.trim()}
                 >
                   {pred[index]?.value}
                 </div>

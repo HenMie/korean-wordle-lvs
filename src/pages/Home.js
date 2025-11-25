@@ -63,32 +63,46 @@ function HomePage() {
         />
       </Helmet>
       <Header />
+      
       <div className="homepage__content">
+        {/* Logo */}
         <img src={icon} alt="wordle icon" className="homepage__icon" />
-        <h1 className="homepage__text">{lang.home1}</h1>
+        
+        {/* 标题区域 */}
+        <div className="homepage__title-group">
+          <h1 className="homepage__title">{lang.home1}</h1>
+          <p className="homepage__subtitle">한글 Wordle</p>
+        </div>
+        
+        {/* 开始游戏区域 */}
         <div>
           <p className="homepage__text homepage__text--start">{lang.home2}</p>
           <p className="homepage__text homepage__text--level">{lang.home3}</p>
-          <button
-            className="homepage__button"
-            onClick={() => handleNavigation("easy")}
-          >
-            {lang.lv1}
-          </button>
-          <button
-            className="homepage__button"
-            onClick={() => handleNavigation("imdt")}
-          >
-            {lang.lv2}
-          </button>
-          <button
-            className="homepage__button"
-            onClick={() => handleNavigation("hard")}
-          >
-            {lang.lv3}
-          </button>
+          
+          <div className="homepage__buttons">
+            <button
+              className="homepage__button homepage__button--easy"
+              onClick={() => handleNavigation("easy")}
+            >
+              {lang.lv1}
+            </button>
+            <button
+              className="homepage__button homepage__button--imdt"
+              onClick={() => handleNavigation("imdt")}
+            >
+              {lang.lv2}
+            </button>
+            <button
+              className="homepage__button homepage__button--hard"
+              onClick={() => handleNavigation("hard")}
+            >
+              {lang.lv3}
+            </button>
+          </div>
         </div>
-        <div>
+        
+        {/* 页脚 */}
+        <div className="homepage__footer">
           <p className="homepage__text homepage__text--edit">
             Made by{" "}
             <a

@@ -1,113 +1,318 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// 🎯 Modal 弹窗组件样式 - 韩系柔和极简主义
+// ═══════════════════════════════════════════════════════════════════════════
+
 .Overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 500;
+  padding: var(--space-4);
+  
+  // 入场动画
+  animation: fade-in var(--duration-normal) var(--ease-out);
+  
+  body.dark-mode & {
+    background-color: rgba(0, 0, 0, 0.6);
+  }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // 内容容器
+  // ─────────────────────────────────────────────────────────────────────────
   .Content {
-    padding: 20px;
-    background-color: #fff;
     position: relative;
-    width: 350px;
-    min-height: 330px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 380px;
+    min-height: 320px;
+    padding: var(--space-8);
+    background-color: var(--color-bg-tertiary);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
+    gap: var(--space-6);
+    
+    // 入场动画
+    animation: scale-in var(--duration-normal) var(--ease-spring);
+    
+    body.dark-mode & {
+      background-color: var(--color-dark-bg-tertiary);
+    }
+  }
 
-    .content_txt {
-      padding-top: 55px;
-      padding-bottom: 15px;
-      font-family: "Orbit";
-      font-weight: 900;
-      text-align: center;
+  // ─────────────────────────────────────────────────────────────────────────
+  // 关闭按钮
+  // ─────────────────────────────────────────────────────────────────────────
+  .CloseButton {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    font-size: var(--text-2xl);
+    color: var(--color-text-tertiary);
+    background: none;
+    border: none;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+    
+    &:hover {
+      color: var(--color-text-primary);
+      background: var(--color-bg-secondary);
     }
-    .CloseButton {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: none;
-      border: none;
-      font-size: 1.5em;
-      cursor: pointer;
+    
+    &:active {
+      transform: scale(0.95);
     }
-    .AnswerWord {
-      margin-bottom: 10px;
-      color: black;
-      font-size: 25px;
-      p {
-        display: inline-block;
-        margin-right: 5px;
+    
+    body.dark-mode & {
+      color: var(--color-dark-text-tertiary);
+      
+      &:hover {
+        color: var(--color-dark-text-primary);
+        background: var(--color-dark-bg-secondary);
       }
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 消息文字
+  // ─────────────────────────────────────────────────────────────────────────
+  .content_txt {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--space-4);
+    gap: var(--space-2);
+    
+    p {
+      font-family: var(--font-sans);
+      font-size: var(--text-xl);
+      font-weight: var(--font-semibold);
+      color: var(--color-text-primary);
+      line-height: var(--leading-relaxed);
+      
+      body.dark-mode & {
+        color: var(--color-dark-text-primary);
+      }
+    }
+    
+    &__desc {
+      font-size: var(--text-sm) !important;
+      font-weight: var(--font-normal) !important;
+      color: var(--color-text-tertiary) !important;
+      
+      body.dark-mode & {
+        color: var(--color-dark-text-tertiary) !important;
+      }
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 答案单词显示
+  // ─────────────────────────────────────────────────────────────────────────
+  .AnswerWord {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-text-primary);
+    
+    p {
+      display: inline-block;
+      font-family: var(--font-serif);
+      font-size: var(--text-3xl);
+      font-weight: var(--font-bold);
+      letter-spacing: var(--tracking-wide);
+    }
+    
+    .Original {
+      font-family: var(--font-sans);
+      font-size: var(--text-base);
+      color: var(--color-text-tertiary);
+      font-weight: var(--font-normal);
+    }
+    
+    body.dark-mode & {
+      color: var(--color-dark-text-primary);
+      
       .Original {
-        font-size: 20px;
+        color: var(--color-dark-text-tertiary);
       }
     }
+  }
 
-    .AnswerMeaning {
-      padding: 10px;
-      font-family: "Orbit";
-      min-height: 92px;
+  // ─────────────────────────────────────────────────────────────────────────
+  // 词义解释区域
+  // ─────────────────────────────────────────────────────────────────────────
+  .AnswerMeaning {
+    flex: 1;
+    width: 100%;
+    padding: var(--space-4);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    line-height: var(--leading-relaxed);
+    text-align: center;
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-lg);
+    max-height: 120px;
+    overflow-y: auto;
+    
+    body.dark-mode & {
+      background: var(--color-dark-bg-secondary);
+      color: var(--color-dark-text-secondary);
     }
-    .more_active {
-      cursor: pointer;
+  }
+  
+  .more_active {
+    cursor: pointer;
+    position: relative;
+    
+    &:hover {
+      color: var(--color-text-primary);
+      
+      body.dark-mode & {
+        color: var(--color-dark-text-primary);
+      }
     }
+  }
 
-    /* 페이지 번호 버튼 스타일 */
-    .pagination-btn {
-      padding: 5px 10px;
-      margin: 5px;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-      button {
-        background-color: #94a3b8;
-      }
-      button:hover {
-        background-color: #adb9c9;
-      }
-      button.active {
-        background-color: #596275;
-      }
-    }
-
-    .Buttons {
+  // ─────────────────────────────────────────────────────────────────────────
+  // 分页按钮
+  // ─────────────────────────────────────────────────────────────────────────
+  .pagination-btn {
+    display: flex;
+    gap: var(--space-2);
+    
+    button {
       display: flex;
+      align-items: center;
       justify-content: center;
-      gap: 10px;
-
-      .HomeButton {
-        padding: 10px 20px;
-        background-color: #94a3b8;
-        color: white;
-        border: none;
-        border-radius: 20px;
-        font-size: 1em;
-        cursor: pointer;
-        transition: background-color 0.3s ease; /* 부드러운 색상 전환 효과 */
-
+      width: 32px;
+      height: 32px;
+      font-size: var(--text-sm);
+      font-weight: var(--font-medium);
+      color: var(--color-text-secondary);
+      background-color: var(--color-bg-secondary);
+      border: 1px solid var(--color-border-light);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all var(--duration-fast) var(--ease-out);
+      
+      &:hover {
+        background-color: var(--color-border-light);
+        border-color: var(--color-border-medium);
+      }
+      
+      &.active {
+        background-color: var(--color-text-primary);
+        border-color: var(--color-text-primary);
+        color: var(--color-text-inverse);
+      }
+      
+      body.dark-mode & {
+        background-color: var(--color-dark-bg-secondary);
+        border-color: var(--color-dark-border-light);
+        color: var(--color-dark-text-secondary);
+        
         &:hover {
-          background-color: #4d5058;
+          background-color: var(--color-dark-border-light);
+        }
+        
+        &.active {
+          background-color: var(--color-dark-text-primary);
+          border-color: var(--color-dark-text-primary);
+          color: var(--color-dark-bg-primary);
         }
       }
     }
   }
-  body.dark-mode & {
-    .Content {
-      color: #c7c7c7;
-      background-color: #333;
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 操作按钮组
+  // ─────────────────────────────────────────────────────────────────────────
+  .Buttons {
+    display: flex;
+    gap: var(--space-3);
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .HomeButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-3) var(--space-6);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    color: var(--color-text-inverse);
+    background-color: var(--color-text-primary);
+    border: none;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+    min-width: 100px;
+    
+    &:hover {
+      background-color: var(--color-text-secondary);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
     }
-    .AnswerWord {
-      color: #c7c7c7;
+    
+    &:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+    
+    body.dark-mode & {
+      background-color: var(--color-dark-text-primary);
+      color: var(--color-dark-bg-primary);
+      
+      &:hover {
+        background-color: var(--color-dark-text-secondary);
+      }
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 📱 响应式设计
+// ═══════════════════════════════════════════════════════════════════════════
+
+@media (max-width: 640px) {
+  .Overlay {
+    padding: var(--space-3);
+    
+    .Content {
+      padding: var(--space-6);
+      min-height: 280px;
+    }
+    
+    .AnswerWord p {
+      font-size: var(--text-2xl);
+    }
+    
+    .HomeButton {
+      padding: var(--space-3) var(--space-4);
+      font-size: var(--text-sm);
+      min-width: 80px;
     }
   }
 }

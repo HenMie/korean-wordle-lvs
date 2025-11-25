@@ -1,13 +1,32 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// 🎯 Header 组件样式 - 韩系柔和极简主义
+// ═══════════════════════════════════════════════════════════════════════════
+
 .header-container {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  height: 50px;
-  background-color: #333;
+  height: 60px;
+  background: var(--color-bg-tertiary);
+  border-bottom: 1px solid var(--color-border-light);
   display: flex;
   justify-content: center;
+  align-items: center;
   z-index: 100;
+  
+  // 微妙的毛玻璃效果
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  background: rgba(255, 255, 255, 0.85);
+  
+  // 入场动画
+  animation: fade-in-down var(--duration-normal) var(--ease-out);
+  
+  body.dark-mode & {
+    background: rgba(15, 15, 15, 0.9);
+    border-color: var(--color-dark-border-light);
+  }
 }
 
 .header {
@@ -16,58 +35,177 @@
   height: 100%;
   display: flex;
   align-items: center;
-  color: #fff;
-  padding: 5px;
-  font-family: "Orbit";
+  justify-content: space-between;
+  padding: 0 var(--space-4);
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // 左侧 - 首页图标
+  // ─────────────────────────────────────────────────────────────────────────
   &__icon-first {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 40px;
+    height: 40px;
+    color: var(--color-text-secondary);
+    border-radius: var(--radius-lg);
     cursor: pointer;
-    height: 100%;
-    flex: 1;
-    min-width: 50px;
+    transition: all var(--duration-fast) var(--ease-out);
+    
+    &:hover {
+      color: var(--color-text-primary);
+      background: var(--color-bg-secondary);
+    }
+    
+    &:active {
+      transform: scale(0.95);
+    }
+    
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+    
+    body.dark-mode & {
+      color: var(--color-dark-text-secondary);
+      
+      &:hover {
+        color: var(--color-dark-text-primary);
+        background: var(--color-dark-bg-secondary);
+      }
+    }
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // 中间 - 标题
+  // ─────────────────────────────────────────────────────────────────────────
   &__title {
-    flex: 2;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: "Black Han Sans";
-
-    &--kor,
-    &--eng {
-      cursor: pointer;
+    gap: var(--space-2);
+    cursor: pointer;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-lg);
+    transition: all var(--duration-fast) var(--ease-out);
+    
+    &:hover {
+      background: var(--color-bg-secondary);
+    }
+    
+    &:active {
+      transform: scale(0.98);
     }
 
     &--kor {
-      font-size: 20px;
-      padding-right: 5px;
+      font-family: var(--font-serif);
+      font-size: var(--text-xl);
+      font-weight: var(--font-bold);
+      color: var(--color-text-primary);
+      letter-spacing: var(--tracking-tight);
+      
+      body.dark-mode & {
+        color: var(--color-dark-text-primary);
+      }
     }
 
     &--eng {
-      font-size: 18px;
-      padding-left: 5px;
+      font-family: var(--font-sans);
+      font-size: var(--text-base);
+      font-weight: var(--font-medium);
+      color: var(--color-text-tertiary);
+      letter-spacing: var(--tracking-wide);
+      
+      body.dark-mode & {
+        color: var(--color-dark-text-tertiary);
+      }
+    }
+    
+    body.dark-mode & {
+      &:hover {
+        background: var(--color-dark-bg-secondary);
+      }
     }
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // 右侧 - 功能图标组
+  // ─────────────────────────────────────────────────────────────────────────
   &__icon-second {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: var(--space-1);
+  }
+  
+  .icon-items {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    color: var(--color-text-secondary);
+    border-radius: var(--radius-lg);
     cursor: pointer;
-    height: 100%;
-    flex: 1;
-    min-width: 150px;
+    transition: all var(--duration-fast) var(--ease-out);
+    
+    &:hover {
+      color: var(--color-text-primary);
+      background: var(--color-bg-secondary);
+    }
+    
+    &:active {
+      transform: scale(0.95);
+    }
+    
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+    
+    body.dark-mode & {
+      color: var(--color-dark-text-secondary);
+      
+      &:hover {
+        color: var(--color-dark-text-primary);
+        background: var(--color-dark-bg-secondary);
+      }
+    }
+  }
+}
 
+// ═══════════════════════════════════════════════════════════════════════════
+// 📱 响应式设计
+// ═══════════════════════════════════════════════════════════════════════════
+
+@media (max-width: 640px) {
+  .header-container {
+    height: 56px;
+  }
+  
+  .header {
+    padding: 0 var(--space-2);
+    
+    &__title {
+      padding: var(--space-1) var(--space-2);
+      
+      &--kor {
+        font-size: var(--text-lg);
+      }
+      
+      &--eng {
+        font-size: var(--text-sm);
+      }
+    }
+    
+    &__icon-first,
     .icon-items {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
+      width: 36px;
+      height: 36px;
+      
+      svg {
+        width: 16px;
+        height: 16px;
+      }
     }
   }
 }
