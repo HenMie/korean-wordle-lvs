@@ -58,30 +58,6 @@ function Sidebar() {
             isOn={keyboardMode}
             onChange={() => handleToggle(setKeyboardMode)}
           />
-          <hr />
-          <div className="sidebar__option">
-            <span className="sidebar__option-title">{lang.report}</span>
-            <a
-              href="https://github.com/hwahyeon/korean-wordle-lvs/issues"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {lang.link}
-            </a>
-          </div>
-          <span>{lang.report_desc}</span>
-          <hr />
-          <div className="sidebar__option">
-            <span className="sidebar__option-title">{lang.original}</span>
-            <a
-              href="https://www.nytimes.com/games/wordle/index.html"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {lang.link}
-            </a>
-          </div>
-          <span>{lang.original_desc}</span>
         </div>
       </div>
       <div className="sidebar__overlay" onClick={toggleSidebar}></div>
