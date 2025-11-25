@@ -90,7 +90,15 @@ function HomePage() {
         </div>
         <div>
           <p className="homepage__text homepage__text--edit">
-            Made by hwahyeon
+            Made by{" "}
+            <a
+              href="https://github.com/HenMie/korean-wordle-lvs"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Chouann
+            </a>{" "}
+            (forked from hwahyeon)
           </p>
         </div>
       </div>
