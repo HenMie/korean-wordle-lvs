@@ -14,7 +14,7 @@
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "craco-alias": "^3.0.1",
-    "sass": "^1.69.5",
+    "sass": "^1.94.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-helmet": "^6.1.0",
@@ -52,6 +52,9 @@
   },
   "devDependencies": {
     "gh-pages": "^6.0.0"
+  },
+  "overrides": {
+    "sass-loader": "^13.3.2"
   },
   "homepage": "https://korean-wordle-lvs.vercel.app/"
 }

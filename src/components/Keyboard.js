@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Box } from "@mui/material";
 import buttonsData from "@assets/buttons-kor.json";
 import { useLanguage } from "@contexts/LanguageContext";
@@ -14,32 +14,53 @@ const Keyboard = ({
   handleSubmitButtonClick,
 }) => {
   const { lang } = useLanguage();
-  const [key, setKey] = useState("");
-  const [keyUpdateCount, setKeyUpdateCount] = useState(0);
   const [animatedButton, setAnimatedButton] = useState(null);
   const [animationKey, setAnimationKey] = useState(0);
-  const [firstRender, setFirstRender] = useState(true);
 
   const myButtons1 = buttonsData.myButtons1;
   const myButtons2 = buttonsData.myButtons2;
   const myButtons3 = buttonsData.myButtons3;
+  const muchMessage = lang?.center_msg?.much ?? "";
+
+  const animationBtn = useCallback((value) => {
+    setAnimatedButton(value);
+    setAnimationKey((prevKey) => prevKey + 1);
+  }, []);
+
+  const handleRemoveButtonClick = useCallback(() => {
+    setPred((prevPred) => {
+      if (!prevPred.length || !prevPred[prevPred.length - 1]?.deletable) {
+        return prevPred;
+      }
+
+      return prevPred.slice(0, -1);
+    });
+  }, [setPred]);
+
+  const handleButtonClick = useCallback(
+    (value) => {
+      animationBtn(value);
+
+      setPred((prevPred) => {
+        if (prevPred.length >= listLen) {
+          showMessage(muchMessage);
+          return prevPred;
+        }
+
+        const newItem = {
+          value,
+          deletable: true,
+          color: "",
+        };
+
+        return [...prevPred, newItem];
+      });
+    },
+    [animationBtn, listLen, showMessage, muchMessage, setPred]
+  );
 
   // Real Keyboard input
   const keyboardMode = useRecoilValue(keyboardModeState);
-
-  useEffect(() => {
-    if (firstRender) {
-      setFirstRender(false);
-    } else {
-      if (key === "enter") {
-        handleSubmitButtonClick();
-      } else if (key === "backspace") {
-        handleRemoveButtonClick();
-      } else {
-        handleButtonClick(key);
-      }
-    }
-  }, [keyUpdateCount]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -78,13 +99,17 @@ const Keyboard = ({
       };
       const key = event.key.toLowerCase();
 
-      if (key === "enter" || key === "backspace") {
-        setKey(key);
-        // event.preventDefault(); enter key
-        setKeyUpdateCount((count) => count + 1);
-      } else if (keyToHangul[key]) {
-        setKey(keyToHangul[key]);
-        setKeyUpdateCount((count) => count + 1);
+      if (key === "enter") {
+        animationBtn("enter");
+        handleSubmitButtonClick();
+      } else if (key === "backspace") {
+        animationBtn("backspace");
+        handleRemoveButtonClick();
+      } else {
+        const hangul = keyToHangul[key];
+        if (hangul) {
+          handleButtonClick(hangul);
+        }
       }
     };
 
@@ -92,7 +117,13 @@ const Keyboard = ({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [keyboardMode]);
+  }, [
+    keyboardMode,
+    animationBtn,
+    handleButtonClick,
+    handleRemoveButtonClick,
+    handleSubmitButtonClick,
+  ]);
 
   useEffect(() => {
     if (animatedButton !== null) {
@@ -103,11 +134,6 @@ const Keyboard = ({
       return () => clearTimeout(timer);
     }
   }, [animatedButton, animationKey]);
-
-  function animationBtn(value) {
-    setAnimatedButton(value);
-    setAnimationKey((prevKey) => prevKey + 1);
-  }
 
   // function keyboardColor(v) {
   //   const foundPreds = pred.filter((predItem) => predItem.value === v);
@@ -138,33 +164,6 @@ const Keyboard = ({
     }
     return "";
   }
-
-  const handleRemoveButtonClick = () => {
-    if (pred[pred.length - 1]?.deletable) {
-      let updatedList = [...pred];
-      updatedList.pop();
-      setPred(updatedList);
-    }
-  };
-
-  const handleButtonClick = (value) => {
-    animationBtn(value);
-
-    if (pred.length < listLen) {
-      const newItem = {
-        value: value,
-        deletable: true,
-        color: "",
-      };
-      // setPred 내부에서 상태 업데이트 후 추가 로직 수행
-      setPred((prevPred) => {
-        const newPred = [...prevPred, newItem];
-        return newPred;
-      });
-    } else {
-      showMessage(lang.center_msg.much);
-    }
-  };
 
   return (
     <Box className="keyboard">
