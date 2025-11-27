@@ -1,7 +1,9 @@
 import { atom } from "recoil";
+import { useEffect, useCallback } from "react";
+import { useRecoilState, useRecoilValue } from "recoil";
 
 // 获取系统深色模式偏好
-const getSystemDarkMode = () => {
+export const getSystemDarkMode = () => {
   if (typeof window !== "undefined" && window.matchMedia) {
     return window.matchMedia("(prefers-color-scheme: dark)").matches;
   }
@@ -49,3 +51,44 @@ export const keyboardModeState = atom({
   default: false,
   effects: [localStorageEffect("wordle_keyboard_mode")],
 });
+
+// 主题同步 hook - 在应用根级别使用
+export const useThemeSync = () => {
+  const [darkMode, setDarkMode] = useRecoilState(darkModeState);
+  const darkModePreference = useRecoilValue(darkModePreferenceState);
+  const colorMode = useRecoilValue(colorModeState);
+
+  // 根据 preference 更新实际的 darkMode
+  const updateDarkMode = useCallback((preference) => {
+    if (preference === "system") {
+      setDarkMode(getSystemDarkMode());
+    } else {
+      setDarkMode(preference === "dark");
+    }
+  }, [setDarkMode]);
+
+  // 监听系统主题变化
+  useEffect(() => {
+    if (darkModePreference === "system") {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      const handleChange = (e) => setDarkMode(e.matches);
+      
+      // 立即同步一次
+      setDarkMode(mediaQuery.matches);
+      
+      mediaQuery.addEventListener("change", handleChange);
+      return () => mediaQuery.removeEventListener("change", handleChange);
+    }
+  }, [darkModePreference, setDarkMode]);
+
+  // 当 preference 变化时更新 darkMode
+  useEffect(() => {
+    updateDarkMode(darkModePreference);
+  }, [darkModePreference, updateDarkMode]);
+
+  // 应用 body 样式
+  useEffect(() => {
+    document.body.classList.toggle("dark-mode", darkMode);
+    document.body.classList.toggle("color-mode", colorMode);
+  }, [darkMode, colorMode]);
+};
