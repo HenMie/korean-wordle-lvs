@@ -207,6 +207,41 @@
         animation-fill-mode: both;
       }
     }
+    
+    // PVP 按钮特殊样式
+    &--pvp {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      color: white;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      border: none;
+      
+      svg {
+        font-size: var(--text-lg);
+      }
+      
+      &:hover {
+        background: linear-gradient(135deg, #818cf8, #6366f1);
+        border-color: transparent;
+      }
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PVP 入口区域
+  // ─────────────────────────────────────────────────────────────────────────
+  &__pvp-section {
+    margin-top: var(--space-6);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--color-border-light);
+    width: 100%;
+    max-width: 280px;
+    
+    animation: fade-in-up var(--duration-normal) var(--ease-out);
+    animation-delay: 320ms;
+    animation-fill-mode: both;
   }
 
   // ─────────────────────────────────────────────────────────────────────────

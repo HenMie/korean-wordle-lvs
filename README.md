@@ -1,52 +1,57 @@
-# Korean Wordle
-This is the Korean version of Wordle. Only one challenge per day is given, and the answer changes every day at 00:00. This Wordle game only supports nouns and standard language (no dialect or slang).
+# Korean Wordle 韩语猜词游戏
 
-## Difficulty Levels
-- **초급(Easy)**: Use common words, great for beginners.
-- **중급(Medium)**: A balanced challenge with moderately difficult words.
-- **고급(Hard)**: Rare difficult words for advanced players.
+[English](./README_EN.md) | 简体中文
 
-## How to Play
-1. **Choose Difficulty**: Select from Easy, Medium, or Hard.
-2. **Guess the Word**: Type in a Korean word and submit your guess.
-3. **Interpret the Hints**: Tiles change color to guide you to the correct word.
-   - <img src="./readme/green_circle.svg" width="11" height="11"/> Green: Right letter, right spot.
-   - <img src="./readme/yellow_circle.svg" width="11" height="11"/> Yellow: Right letter, wrong spot.
-   - <img src="./readme/gray_circle.svg" width="11" height="11"/> Gray: Wrong letter.
-4. **Winning the Game**: Correctly guess the word within the limited attempts to win.
+这是 Wordle 游戏的韩语版本。游戏采用随机题目模式，每次开始新游戏都会随机抽取一个单词作为答案，你可以无限次挑战！本游戏仅支持名词和标准语（不含方言或俚语）。
 
-For more information, see *Information Modal* in the game.
+## 难度等级
+- **초급（简单）**：使用常见词汇，适合初学者。
+- **중급（中等）**：难度适中，词汇具有一定挑战性。
+- **고급（困难）**：罕见的高难度词汇，适合高级玩家。
 
-## Features
-- **Dark Mode**: Reduce eye strain with a darker color palette, perfect for night-time play.
-- **Colorblind Mode**: Enjoy the game without color barriers.
-- **Information Modal**: Learn game rules and tips easily.
-- **Keyboard**: Keyboard input is supported.
-- **Multi-language Support**: Available in Korean, English, Chinese, German, and Greek.
-- **Game State Persistence**: Your progress is saved automatically.
+## 游戏玩法
+1. **选择难度**：从简单、中等或困难中选择。
+2. **猜测单词**：输入一个韩语单词并提交。
+3. **理解提示**：方块会变色来引导你找到正确答案。
+   - <img src="./readme/green_circle.svg" width="11" height="11"/> 绿色：字母正确，位置正确。
+   - <img src="./readme/yellow_circle.svg" width="11" height="11"/> 黄色：字母正确，位置错误。
+   - <img src="./readme/gray_circle.svg" width="11" height="11"/> 灰色：字母错误。
+4. **获胜条件**：在有限的尝试次数内正确猜出单词即可获胜。
 
-## Tech Stack
+更多信息请参阅游戏内的*信息弹窗*。
 
-| Category | Technology |
-|----------|------------|
-| Framework | React 18 |
-| Routing | React Router DOM v6 |
-| State Management | Recoil |
-| Styling | SCSS/Sass, Material UI, Styled Components |
-| Icons | FontAwesome |
-| Build Tool | CRACO (Create React App Configuration Override) |
+## 功能特点
+- **随机题目模式**：每局游戏随机生成答案，可无限次挑战。
+- **深色模式**：使用更深的配色方案减少眼睛疲劳，非常适合夜间游戏。
+- **色盲模式**：让色盲用户也能无障碍地享受游戏。
+- **信息弹窗**：轻松了解游戏规则和技巧。
+- **键盘支持**：支持键盘输入。
+- **多语言支持**：支持韩语、英语、中文、德语和希腊语。
+- **游戏状态保存**：你的游戏进度会自动保存。
+- **PVP 对战模式**：与好友（2-4 人）实时对战，看谁最快猜出单词！
+
+## 技术栈
+
+| 类别 | 技术 |
+|------|------|
+| 框架 | React 18 |
+| 路由 | React Router DOM v6 |
+| 状态管理 | Recoil |
+| 样式 | SCSS/Sass, Material UI, Styled Components |
+| 图标 | FontAwesome |
+| 构建工具 | CRACO (Create React App Configuration Override) |
 | SEO | React Helmet |
-| Deployment | Vercel, Docker |
+| 部署 | Vercel, Docker |
 
-## Docker Deployment
+## Docker 部署
 
-### Prerequisites
+### 前置要求
 - Docker
 - Docker Compose
 
-### Quick Start
+### 快速开始
 
-1. **Create configuration file**
+1. **创建配置文件**
 
 ```bash
 # Linux/Mac
@@ -56,161 +61,260 @@ cp env.example .env
 copy env.example .env
 ```
 
-2. **Configure environment variables** (optional)
+2. **配置环境变量**（可选）
 
-Edit `.env` file to customize:
+编辑 `.env` 文件进行自定义配置：
 
 ```ini
-# Image tag (options: latest, main, or specific version like 1.2.0)
+# 镜像标签（选项：latest, main, 或特定版本如 1.2.0）
 IMAGE_TAG=latest
 
-# Container name
+# 容器名称
 CONTAINER_NAME=korean-wordle
 
-# Host port mapping (access via http://localhost:HOST_PORT)
+# 主机端口映射（通过 http://localhost:HOST_PORT 访问）
 HOST_PORT=3000
 
-# Timezone
+# 时区
 TZ=Asia/Shanghai
 
-# Docker network name
+# Docker 网络名称
 NETWORK_NAME=korean-wordle-network
+
+# PVP WebSocket 端点（暴露给浏览器）
+REACT_APP_SOCKET_SERVER=http://localhost:3001
+
+# PVP 服务器端口（主机/容器）
+PVP_SERVER_PORT=3001
+
+# WebSocket 服务器允许的源（逗号分隔）
+PVP_CLIENT_URL=http://localhost:3000
 ```
 
-3. **Run container**
+3. **运行容器（前端 + PVP 后端一键部署）**
 
 ```bash
-# Pull and start container
-docker-compose up -d
+# 构建镜像（前端 + WebSocket）并启动容器
+docker-compose up -d --build
 
-# View logs
-docker-compose logs -f
+# 查看前端日志
+docker-compose logs -f korean-wordle
 
-# Stop container
+# 查看 PVP 服务器日志
+docker-compose logs -f pvp-server
+
+# 停止容器
 docker-compose down
-
-# Update to latest image
-docker-compose pull && docker-compose up -d
 ```
 
-4. **Access the application**
+4. **访问应用**
 
-Open your browser and visit: `http://localhost:3000` (or your configured port)
+打开浏览器访问：`http://localhost:3000`（或你配置的端口）
 
-### Pull from Docker Hub
+### 从 Docker Hub 拉取
 
-Docker Hub: https://hub.docker.com/r/chouann/korean-wordle
+Docker Hub：https://hub.docker.com/r/chouann/korean-wordle
 
 ```bash
-# Pull latest image
+# 拉取最新镜像
 docker pull chouann/korean-wordle:latest
 
-# Run directly
+# 直接运行
 docker run -d -p 3000:80 chouann/korean-wordle:latest
 
-# Or use specific version
+# 或使用特定版本
 docker pull chouann/korean-wordle:1.2.0
 ```
 
-### CI/CD Auto Build
+> **注意：** 上面的独立 `docker run` 命令仅启动前端。如果需要启用 PVP 对战模式，请优先使用本仓库提供的 `docker-compose up -d --build`，它会自动启动 WebSocket 后端服务。
 
-This project uses GitHub Actions to automatically build and push Docker images to Docker Hub.
+### 自定义域名部署（HTTPS + 同域 WebSocket）
 
-**Triggers:**
-| Event | Image Tags |
-|-------|------------|
-| Push to main/master | `latest`, `main` |
-| Create tag `v1.2.0` | `1.2.0`, `1.2`, `latest` |
-| Pull Request | Build only, no push |
-| Manual trigger | Based on branch |
+如果你要把整套服务部署在自己的域名（例如 `https://koreanwordle.ningriri.cn/`），可以参考以下流程：
 
-**Setup (for fork):**
-1. Create a repository on [Docker Hub](https://hub.docker.com/)
-2. Go to GitHub repo **Settings** → **Secrets and variables** → **Actions**
-3. Add secrets:
-   - `DOCKERHUB_USERNAME`: Your Docker Hub username
-   - `DOCKERHUB_TOKEN`: Docker Hub Access Token (generate in Docker Hub Account Settings → Security)
+1. **编辑 `.env`**（在部署主机上）
+   ```ini
+   HOST_PORT=3000
+   REACT_APP_SOCKET_SERVER=https://koreanwordle.ningriri.cn/socket.io
+   PVP_SERVER_PORT=3001
+   PVP_CLIENT_URL=https://koreanwordle.ningriri.cn
+   ```
+   - `REACT_APP_SOCKET_SERVER` 必须写公网的 HTTPS 地址，这样前端打包后会连到同域的 `/socket.io`。
+   - `PVP_CLIENT_URL` 为 WebSocket 服务允许的跨域来源，可用逗号追加多个域名或调试地址。
 
-### Version Management
+2. **一键构建并启动**
+   ```bash
+   docker-compose up -d --build
+   ```
 
-This project uses automated version management. To release a new version:
+3. **配置外层反向代理**（以 Nginx 为例，假设证书已就绪）
+   ```nginx
+   server {
+       listen 80;
+       server_name koreanwordle.ningriri.cn;
+       return 301 https://$host$request_uri;
+   }
+
+   server {
+       listen 443 ssl http2;
+       server_name koreanwordle.ningriri.cn;
+       ssl_certificate     /path/fullchain.pem;
+       ssl_certificate_key /path/privkey.pem;
+
+       # 前端静态资源
+       location / {
+           proxy_pass http://127.0.0.1:3000;
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+       }
+
+       # WebSocket (Socket.IO 默认路径 /socket.io)
+       location /socket.io/ {
+           proxy_pass http://127.0.0.1:3001;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection "upgrade";
+           proxy_set_header Host $host;
+       }
+   }
+   ```
+
+完成后访问 `https://koreanwordle.ningriri.cn/` 即可在同一域名下正常使用 PVP 对战模式（前端页面与 WebSocket 均经过 HTTPS）。
+
+### CI/CD 自动构建
+
+本项目使用 GitHub Actions 自动构建并推送 Docker 镜像到 Docker Hub。
+
+**触发条件：**
+| 事件 | 镜像标签 |
+|------|----------|
+| 推送到 main/master | `latest`, `main` |
+| 创建标签 `v1.2.0` | `1.2.0`, `1.2`, `latest` |
+| Pull Request | 仅构建，不推送 |
+| 手动触发 | 基于分支 |
+
+**设置（fork 后）：**
+1. 在 [Docker Hub](https://hub.docker.com/) 创建仓库
+2. 进入 GitHub 仓库 **Settings** → **Secrets and variables** → **Actions**
+3. 添加 secrets：
+   - `DOCKERHUB_USERNAME`：你的 Docker Hub 用户名
+   - `DOCKERHUB_TOKEN`：Docker Hub 访问令牌（在 Docker Hub 账户设置 → Security 中生成）
+
+### 版本管理
+
+本项目使用自动化版本管理。发布新版本：
 
 ```bash
-# Patch release (1.1.1 → 1.1.2) - bug fixes
+# 补丁版本 (1.1.1 → 1.1.2) - 修复 bug
 npm run release:patch
 
-# Minor release (1.1.1 → 1.2.0) - new features
+# 次版本 (1.1.1 → 1.2.0) - 新功能
 npm run release:minor
 
-# Major release (1.1.1 → 2.0.0) - breaking changes
+# 主版本 (1.1.1 → 2.0.0) - 重大变更
 npm run release:major
 ```
 
-This will automatically:
-1. Run tests (if available)
-2. Update version in `package.json`
-3. Sync version to `docker-compose.yml`
-4. Create a git commit and tag
-5. Push to remote with tags
-6. Trigger GitHub Actions to build Docker image and create Release
+这将自动：
+1. 运行测试（如果有）
+2. 更新 `package.json` 中的版本号
+3. 同步版本到 `docker-compose.yml`
+4. 创建 git 提交和标签
+5. 推送到远程仓库（包含标签）
+6. 触发 GitHub Actions 构建 Docker 镜像并创建 Release
 
-## Project Structure
+## PVP 对战模式
+
+PVP 模式允许 2-4 名玩家实时对战，同时猜测同一个单词。
+
+### 如何进行 PVP 对战
+1. **创建房间**：在首页点击"PVP 对战"，输入你的昵称，选择难度和最大人数，然后创建房间。
+2. **分享房间代码**：将 6 位房间代码或邀请链接分享给你的朋友。
+3. **准备就绪**：所有玩家加入后，非房主玩家点击"准备"。房主在所有人准备好后开始游戏。
+4. **竞速猜词**：所有人猜同一个单词，最先猜对的玩家获胜！
+5. **查看结果**：所有玩家完成后，根据成功与否和用时查看排名。
+
+### 本地运行 PVP 服务器
+
+```bash
+# 安装依赖并运行 WebSocket 服务器
+cd server
+npm install
+npm start   # 默认端口：3001
+
+# 在另一个终端运行前端（会代理到 localhost:3001）
+cd ..
+npm start
+```
+
+### PVP 环境变量
+| 变量 | 描述 | 默认值 |
+|------|------|--------|
+| `REACT_APP_SOCKET_SERVER` | 前端构建时的 WebSocket 端点 | `http://localhost:3001` |
+| `PVP_SERVER_PORT` | WebSocket 服务器端口 | `3001` |
+| `PVP_CLIENT_URL` | WebSocket 服务器允许的 CORS 源（逗号分隔） | `*` |
+
+## 项目结构
 
 ```
 src/
-├── assets/                 # Static assets
-│   ├── flags/              # Language flag icons
-│   ├── easy-mode.json      # Easy difficulty word list
-│   ├── imdt-mode.json      # Medium difficulty word list
-│   ├── hard-mode.json      # Hard difficulty word list
-│   ├── all-deposed-words.json  # Valid word dictionary
-│   └── *.svg               # UI icons
+├── assets/                 # 静态资源
+│   ├── flags/              # 语言国旗图标
+│   ├── easy-mode.json      # 简单难度词库
+│   ├── imdt-mode.json      # 中等难度词库
+│   ├── hard-mode.json      # 困难难度词库
+│   ├── all-deposed-words.json  # 有效词汇字典
+│   └── *.svg               # UI 图标
 │
-├── components/             # Reusable UI components
-│   ├── Header.js           # App header with navigation
-│   ├── Keyboard.js         # Virtual Korean keyboard
-│   ├── InfoModal.js        # Game rules modal
-│   ├── Sidebar.js          # Settings panel
-│   ├── LangBtn.js          # Language selector
-│   ├── Toggle.js           # Toggle switch component
-│   ├── AnswerModal.js      # Game result display
-│   ├── CentralMessage.js   # Toast notifications
-│   └── ResumeGameModal.js  # Resume saved game prompt
+├── components/             # 可复用 UI 组件
+│   ├── Header.js           # 带导航的应用头部
+│   ├── Keyboard.js         # 虚拟韩语键盘
+│   ├── InfoModal.js        # 游戏规则弹窗
+│   ├── Sidebar.js          # 设置面板
+│   ├── LangBtn.js          # 语言选择器
+│   ├── Toggle.js           # 切换开关组件
+│   ├── AnswerModal.js      # 游戏结果展示
+│   ├── CentralMessage.js   # Toast 通知
+│   ├── ResumeGameModal.js  # 恢复保存游戏提示
+│   └── pvp/                # PVP 模式组件
 │
-├── contexts/               # React Context providers
-│   └── LanguageContext.js  # i18n context
+├── contexts/               # React Context 提供者
+│   ├── LanguageContext.js  # 国际化 context
+│   └── SocketContext.js    # PVP 用 WebSocket context
 │
-├── lang/                   # Localization files
-│   ├── ko.js               # Korean
-│   ├── en.js               # English
-│   ├── zh.js               # Chinese
-│   ├── de.js               # German
-│   └── el.js               # Greek
+├── lang/                   # 本地化文件
+│   ├── ko.js               # 韩语
+│   ├── en.js               # 英语
+│   ├── zh.js               # 中文
+│   ├── de.js               # 德语
+│   └── el.js               # 希腊语
 │
-├── pages/                  # Page components
-│   ├── Home.js             # Home page with difficulty selection
-│   ├── WordleKor.js        # Main game page
-│   ├── NotFound.js         # 404 page
-│   └── modal/              # Info modal pages (7 slides)
+├── pages/                  # 页面组件
+│   ├── Home.js             # 带难度选择的首页
+│   ├── WordleKor.js        # 主游戏页面
+│   ├── NotFound.js         # 404 页面
+│   ├── PvpLobby.js         # PVP 大厅（创建/加入房间）
+│   ├── PvpRoom.js          # PVP 等待室和游戏
+│   └── modal/              # 信息弹窗页面（7 个幻灯片）
 │
-├── state/                  # Recoil state atoms
-│   ├── themeState.js       # Dark mode, color mode, keyboard mode
-│   └── sidebarState.js     # Sidebar open/close state
+├── state/                  # Recoil 状态原子
+│   ├── themeState.js       # 深色模式、颜色模式、键盘模式
+│   └── sidebarState.js     # 侧边栏开关状态
 │
-├── styles/                 # SCSS stylesheets
-│   ├── global.scss         # Global styles and CSS variables
-│   ├── _reset.scss         # CSS reset
-│   ├── components/         # Component-specific styles
-│   └── pages/              # Page-specific styles
+├── styles/                 # SCSS 样式表
+│   ├── global.scss         # 全局样式和 CSS 变量
+│   ├── _reset.scss         # CSS 重置
+│   ├── components/         # 组件专用样式
+│   └── pages/              # 页面专用样式
 │
-├── utils/                  # Utility functions
-├── App.js                  # Root component with routing
-└── index.js                # Application entry point
+├── utils/                  # 工具函数
+├── App.js                  # 带路由的根组件
+└── index.js                # 应用入口点
 ```
 
-## Dataset
-Korean Wordle uses curated datasets to ensure a diverse and challenging word selection for players. Here are some details about our datasets:
-### [Dataset preprocessing repository](https://github.com/hwahyeon/py-wordle-kor-dataset)
-- [우리말샘](https://opendict.korean.go.kr/)
-- [국립국어원 한국어 기초사전](https://krdict.korean.go.kr/)
-- [국립국어연구원 학습용 어휘 목록](https://www.korean.go.kr/front/etcData/etcDataView.do?mn_id=46&etc_seq=71)
+## 数据集
+Korean Wordle 使用精心策划的数据集，确保为玩家提供多样化且具有挑战性的词汇选择。以下是我们数据集的一些详情：
+### [数据集预处理仓库](https://github.com/hwahyeon/py-wordle-kor-dataset)
+- [우리말샘（韩语词典）](https://opendict.korean.go.kr/)
+- [国立国语院韩语基础词典](https://krdict.korean.go.kr/)
+- [国立国语研究院学习用词汇列表](https://www.korean.go.kr/front/etcData/etcDataView.do?mn_id=46&etc_seq=71)

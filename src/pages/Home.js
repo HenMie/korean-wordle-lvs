@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 
 // Style
 import "@styles/pages/_home.scss";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faGamepad } from "@fortawesome/free-solid-svg-icons";
 
 // Component
 import Header from "@components/Header";
@@ -97,6 +99,17 @@ function HomePage() {
               onClick={() => handleNavigation("hard")}
             >
               {lang.lv3}
+            </button>
+          </div>
+          
+          {/* PVP Mode */}
+          <div className="homepage__pvp-section">
+            <button
+              className="homepage__button homepage__button--pvp"
+              onClick={() => navigate("/pvp")}
+            >
+              <FontAwesomeIcon icon={faGamepad} />
+              <span>{lang.pvp?.title || "PVP 对战"}</span>
             </button>
           </div>
         </div>

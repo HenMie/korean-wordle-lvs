@@ -3,6 +3,9 @@
 # ==========================================
 FROM node:18-alpine AS builder
 
+ARG REACT_APP_SOCKET_SERVER=http://localhost:3001
+ENV REACT_APP_SOCKET_SERVER=${REACT_APP_SOCKET_SERVER}
+
 WORKDIR /app
 
 # 复制依赖文件

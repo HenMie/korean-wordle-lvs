@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from "rea
 import Home from "@pages/Home.js";
 import WordleKor from "@pages/WordleKor.js";
 import NotFound from "@pages/NotFound.js";
+import PvpLobby from "@pages/PvpLobby.js";
+import PvpRoom from "@pages/PvpRoom.js";
+import { SocketProvider } from "@contexts/SocketContext.js";
 import "@styles/_reset.scss";
 import "@styles/global.scss";
 
@@ -39,6 +42,17 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/play/:mode/:id" element={<WordleKor />} />
         <Route path="/play/:mode" element={<RandomRedirect />} />
+        {/* PVP Routes */}
+        <Route path="/pvp" element={
+          <SocketProvider>
+            <PvpLobby />
+          </SocketProvider>
+        } />
+        <Route path="/pvp/room/:roomCode" element={
+          <SocketProvider>
+            <PvpRoom />
+          </SocketProvider>
+        } />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

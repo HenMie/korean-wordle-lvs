@@ -1,0 +1,612 @@
+/**
+ * PVP Room Page - 等待室 + 游戏页面
+ */
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { 
+  faUsers, 
+  faCrown, 
+  faCheck, 
+  faCopy,
+  faPlay,
+  faSpinner,
+  faArrowLeft,
+  faLink,
+  faTrophy,
+  faMedal,
+  faRedo
+} from '@fortawesome/free-solid-svg-icons';
+import { Box } from '@mui/material';
+
+import Header from '@components/Header';
+import Keyboard from '@components/Keyboard';
+import CentralMessage from '@components/CentralMessage';
+import { useSocket } from '@contexts/SocketContext';
+import { useLanguage } from '@contexts/LanguageContext';
+
+import hardMode from '@assets/hard-mode.json';
+import imdtMode from '@assets/imdt-mode.json';
+import easyMode from '@assets/easy-mode.json';
+import allDeposedWords from '@assets/all-deposed-words.json';
+
+import '@styles/pages/_pvpRoom.scss';
+import '@styles/pages/_wordleKor.scss';
+
+const modeMap = {
+  easy: easyMode,
+  imdt: imdtMode,
+  hard: hardMode,
+};
+
+function PvpRoom() {
+  const { lang } = useLanguage();
+  const { roomCode } = useParams();
+  const navigate = useNavigate();
+  const { 
+    socket, 
+    connected, 
+    room, 
+    connect, 
+    joinRoom, 
+    setReady, 
+    startGame: socketStartGame,
+    updateProgress,
+    playAgain,
+    leaveRoom 
+  } = useSocket();
+
+  // 等待室状态
+  const [isReady, setIsReady] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  // 游戏状态
+  const [pred, setPred] = useState([]);
+  const [colorList, setColorList] = useState([]);
+  const [listLen, setListLen] = useState(5);
+  const [isVisible, setIsVisible] = useState(false);
+  const [centerMsg, setCenterMsg] = useState('');
+  const [gotAnswer, setGotAnswer] = useState(false);
+  const [failAnswer, setFailAnswer] = useState(false);
+  const [shakeRow, setShakeRow] = useState(-1);
+  const [winRow, setWinRow] = useState(-1);
+  const [gameResults, setGameResults] = useState(null);
+
+  const MAX_PRED_LENGTH = 30;
+
+  // 获取当前玩家信息
+  const currentPlayer = useMemo(() => {
+    if (!room || !socket) return null;
+    return room.players.find(p => p.id === socket.id);
+  }, [room, socket]);
+
+  const isHost = currentPlayer?.isHost || false;
+
+  // 获取答案
+  const { dict_answer, answer } = useMemo(() => {
+    if (!room || room.wordIndex === null || !room.difficulty) {
+      return { dict_answer: null, answer: '' };
+    }
+    const wordList = modeMap[room.difficulty];
+    if (!wordList || room.wordIndex >= wordList.length) {
+      return { dict_answer: null, answer: '' };
+    }
+    const dictAnswer = wordList[room.wordIndex];
+    return { dict_answer: dictAnswer, answer: dictAnswer.value };
+  }, [room]);
+
+  // 连接并加入房间
+  useEffect(() => {
+    if (!connected) {
+      connect();
+    }
+  }, [connect, connected]);
+
+  // 监听游戏事件
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleGameStarted = ({ wordIndex, room: roomData }) => {
+      // 重置游戏状态
+      setPred([]);
+      setColorList([]);
+      setListLen(5);
+      setGotAnswer(false);
+      setFailAnswer(false);
+      setShakeRow(-1);
+      setWinRow(-1);
+      setGameResults(null);
+    };
+
+    const handleProgressUpdated = ({ playerId, progress, won, room: roomData }) => {
+      // 房间状态会自动更新
+    };
+
+    const handleGameFinished = ({ results, room: roomData }) => {
+      setGameResults(results);
+    };
+
+    socket.on('game_started', handleGameStarted);
+    socket.on('progress_updated', handleProgressUpdated);
+    socket.on('game_finished', handleGameFinished);
+
+    return () => {
+      socket.off('game_started', handleGameStarted);
+      socket.off('progress_updated', handleProgressUpdated);
+      socket.off('game_finished', handleGameFinished);
+    };
+  }, [socket]);
+
+  // 准备状态切换
+  const handleToggleReady = async () => {
+    try {
+      await setReady(!isReady);
+      setIsReady(!isReady);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  // 开始游戏
+  const handleStartGame = async () => {
+    if (!room) return;
+    
+    const wordList = modeMap[room.difficulty];
+    if (!wordList) return;
+
+    setLoading(true);
+    try {
+      await socketStartGame(wordList.map(w => w.value));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 复制房间码
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(roomCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  // 复制邀请链接
+  const handleCopyLink = () => {
+    const link = `${window.location.origin}/pvp?room=${roomCode}`;
+    navigator.clipboard.writeText(link);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  // 离开房间
+  const handleLeaveRoom = () => {
+    leaveRoom();
+    navigate('/pvp');
+  };
+
+  // 再来一局
+  const handlePlayAgain = async () => {
+    setLoading(true);
+    try {
+      await playAgain();
+      setIsReady(isHost);
+      setGameResults(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 游戏逻辑
+  const triggerShake = useCallback((rowIndex) => {
+    setShakeRow(rowIndex);
+    setTimeout(() => setShakeRow(-1), 500);
+  }, []);
+
+  const showMessage = useCallback((m) => {
+    setCenterMsg(m);
+    setIsVisible(true);
+    const currentRow = Math.floor(pred.length / 5);
+    triggerShake(currentRow);
+    setTimeout(() => setIsVisible(false), 3000);
+  }, [pred.length, triggerShake]);
+
+  const updateColorPredList = useCallback((predList, ans, len) => {
+    const updatedColorList = [];
+    const answerArray = ans.split('');
+    const answerLetterCount = {};
+    const answerUsed = new Array(ans.length).fill(false);
+
+    for (const char of answerArray) {
+      answerLetterCount[char] = (answerLetterCount[char] || 0) + 1;
+    }
+
+    for (let i = len - 5; i < len; i++) {
+      const item = predList[i];
+      if (!item) {
+        showMessage(lang.center_msg.lack);
+        continue;
+      }
+
+      if (ans[i - len + 5] === item.value) {
+        item.color = 'green';
+        answerUsed[i - len + 5] = true;
+        answerLetterCount[item.value]--;
+        updatedColorList.push('green');
+      } else {
+        updatedColorList.push(null);
+      }
+
+      item.deletable = false;
+    }
+
+    for (let i = len - 5; i < len; i++) {
+      const item = predList[i];
+      if (updatedColorList[i - len + 5] === 'green') continue;
+
+      const charIndex = answerArray.findIndex(
+        (char, idx) => char === item.value && !answerUsed[idx]
+      );
+
+      if (charIndex !== -1 && answerLetterCount[item.value] > 0) {
+        item.color = 'yellow';
+        answerUsed[charIndex] = true;
+        answerLetterCount[item.value]--;
+        updatedColorList[i - len + 5] = 'yellow';
+      } else {
+        item.color = 'gray';
+        updatedColorList[i - len + 5] = 'gray';
+      }
+
+      item.deletable = false;
+    }
+
+    return updatedColorList;
+  }, [showMessage, lang.center_msg.lack]);
+
+  const handleSubmitButtonClick = useCallback(() => {
+    if (
+      pred.length % 5 !== 0 ||
+      pred.length === 0 ||
+      !pred[pred.length - 1].deletable
+    ) {
+      return showMessage(lang.center_msg.lack);
+    }
+
+    const submitted = pred
+      .slice(-5)
+      .map((obj) => obj.value)
+      .join('');
+    if (!allDeposedWords.includes(submitted)) {
+      return showMessage(lang.center_msg.wrong);
+    }
+
+    setListLen((prev) => prev + 5);
+
+    const updatedColorList = updateColorPredList(pred, answer, listLen);
+    setPred([...pred]);
+    setColorList(prevColors => prevColors.concat(updatedColorList));
+
+    const correctCount = updatedColorList.filter((color) => color === 'green').length;
+    const currentRow = Math.floor((pred.length - 1) / 5);
+    const currentProgress = currentRow + 1;
+
+    if (correctCount === 5) {
+      // 胜利
+      setTimeout(() => setWinRow(currentRow), 5 * 150 + 500);
+      setTimeout(() => {
+        setGotAnswer(true);
+        updateProgress(currentProgress, true);
+      }, 5 * 150 + 1200);
+    } else if (pred.length === MAX_PRED_LENGTH) {
+      // 失败
+      setTimeout(() => {
+        setFailAnswer(true);
+        updateProgress(currentProgress, false);
+      }, 5 * 150 + 500);
+    } else {
+      // 更新进度
+      updateProgress(currentProgress, false);
+    }
+  }, [pred, answer, listLen, updateColorPredList, showMessage, lang.center_msg.lack, lang.center_msg.wrong, updateProgress]);
+
+  const keyboardProps = useMemo(() => ({
+    pred,
+    setPred,
+    gotAnswer,
+    listLen,
+    showMessage,
+    handleSubmitButtonClick,
+  }), [pred, gotAnswer, listLen, showMessage, handleSubmitButtonClick]);
+
+  // 检查所有玩家是否准备
+  const allPlayersReady = useMemo(() => {
+    if (!room || room.players.length < 2) return false;
+    return room.players.every(p => p.ready);
+  }, [room]);
+
+  // 如果没有连接或没有房间信息
+  if (!connected || !room) {
+    return (
+      <div className="pvp-room">
+        <Helmet>
+          <title>한글 Wordle | PVP Room</title>
+        </Helmet>
+        <Header />
+        <div className="pvp-room__loading">
+          <FontAwesomeIcon icon={faSpinner} spin />
+          <span>{lang.pvp?.connecting || '正在连接...'}</span>
+        </div>
+      </div>
+    );
+  }
+
+  // 等待室
+  if (room.status === 'waiting') {
+    return (
+      <div className="pvp-room">
+        <Helmet>
+          <title>한글 Wordle | Room {roomCode}</title>
+        </Helmet>
+        <Header />
+
+        <div className="pvp-room__waiting">
+          {/* 返回按钮 */}
+          <button className="pvp-room__back" onClick={handleLeaveRoom}>
+            <FontAwesomeIcon icon={faArrowLeft} />
+            <span>{lang.pvp?.leave || '离开房间'}</span>
+          </button>
+
+          {/* 房间信息 */}
+          <div className="pvp-room__info">
+            <h1 className="pvp-room__title">{lang.pvp?.waiting_room || '等待室'}</h1>
+            
+            <div className="pvp-room__code-section">
+              <span className="pvp-room__code-label">{lang.pvp?.room_code || '房间码'}</span>
+              <div className="pvp-room__code">
+                <span>{roomCode}</span>
+                <button onClick={handleCopyCode} title={lang.pvp?.copy_code || '复制房间码'}>
+                  {copied ? <FontAwesomeIcon icon={faCheck} /> : <FontAwesomeIcon icon={faCopy} />}
+                </button>
+              </div>
+            </div>
+
+            <button className="pvp-room__copy-link" onClick={handleCopyLink}>
+              <FontAwesomeIcon icon={faLink} />
+              <span>{lang.pvp?.copy_link || '复制邀请链接'}</span>
+            </button>
+
+            <div className="pvp-room__difficulty">
+              <span>{lang.pvp?.difficulty || '难度'}:</span>
+              <span className="pvp-room__difficulty-value">
+                {room.difficulty === 'easy' ? lang.lv1 : room.difficulty === 'imdt' ? lang.lv2 : lang.lv3}
+              </span>
+            </div>
+          </div>
+
+          {/* 玩家列表 */}
+          <div className="pvp-room__players">
+            <h2>
+              <FontAwesomeIcon icon={faUsers} />
+              {lang.pvp?.players || '玩家'} ({room.players.length}/{room.maxPlayers})
+            </h2>
+            <ul className="pvp-room__player-list">
+              {room.players.map(player => (
+                <li 
+                  key={player.id} 
+                  className={`pvp-room__player ${player.id === socket.id ? 'current' : ''}`}
+                >
+                  <span className="pvp-room__player-name">
+                    {player.isHost && <FontAwesomeIcon icon={faCrown} className="crown" />}
+                    {player.name}
+                    {player.id === socket.id && <span className="you">({lang.pvp?.you || '你'})</span>}
+                  </span>
+                  <span className={`pvp-room__player-status ${player.ready ? 'ready' : ''}`}>
+                    {player.ready ? (
+                      <>
+                        <FontAwesomeIcon icon={faCheck} />
+                        {lang.pvp?.ready || '已准备'}
+                      </>
+                    ) : (
+                      lang.pvp?.not_ready || '未准备'
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* 操作按钮 */}
+          <div className="pvp-room__actions">
+            {isHost ? (
+              <button 
+                className="pvp-room__start-btn"
+                onClick={handleStartGame}
+                disabled={!allPlayersReady || loading}
+              >
+                {loading ? (
+                  <FontAwesomeIcon icon={faSpinner} spin />
+                ) : (
+                  <>
+                    <FontAwesomeIcon icon={faPlay} />
+                    {lang.pvp?.start_game || '开始游戏'}
+                  </>
+                )}
+              </button>
+            ) : (
+              <button 
+                className={`pvp-room__ready-btn ${isReady ? 'ready' : ''}`}
+                onClick={handleToggleReady}
+              >
+                <FontAwesomeIcon icon={faCheck} />
+                {isReady ? lang.pvp?.cancel_ready || '取消准备' : lang.pvp?.ready_up || '准备'}
+              </button>
+            )}
+          </div>
+
+          {!allPlayersReady && isHost && room.players.length >= 2 && (
+            <p className="pvp-room__hint">{lang.pvp?.waiting_players || '等待所有玩家准备...'}</p>
+          )}
+          {room.players.length < 2 && (
+            <p className="pvp-room__hint">{lang.pvp?.need_more_players || '至少需要2名玩家'}</p>
+          )}
+
+          {error && <div className="pvp-room__error">{error}</div>}
+        </div>
+      </div>
+    );
+  }
+
+  // 游戏中或已结束
+  return (
+    <div className="pvp-room pvp-room--playing">
+      <Helmet>
+        <title>한글 Wordle | PVP Game</title>
+      </Helmet>
+      <Header />
+
+      <div className="pvp-room__game">
+        {/* 对手进度条 */}
+        <div className="pvp-room__opponents">
+          {room.players
+            .filter(p => p.id !== socket?.id)
+            .map(player => (
+              <div key={player.id} className="pvp-room__opponent">
+                <span className="pvp-room__opponent-name">
+                  {player.isHost && <FontAwesomeIcon icon={faCrown} className="crown" />}
+                  {player.name}
+                </span>
+                <div className="pvp-room__opponent-progress">
+                  <div 
+                    className={`pvp-room__progress-bar ${player.finished ? (player.won ? 'won' : 'lost') : ''}`}
+                    style={{ width: `${(player.progress / 6) * 100}%` }}
+                  />
+                </div>
+                <span className="pvp-room__opponent-status">
+                  {player.finished 
+                    ? (player.won ? '✓' : '✗') 
+                    : `${player.progress}/6`
+                  }
+                </span>
+              </div>
+            ))}
+        </div>
+
+        <div className="pvp-room__play-area wordle-page">
+          {/* 游戏面板 */}
+          <Box className="wordle-page__answer-board">
+            {[...Array(6)].map((_, boxIndex) => (
+              <Box 
+                key={boxIndex} 
+                className={`answer-box ${shakeRow === boxIndex ? 'shake' : ''}`}
+              >
+                {[...Array(5)].map((_, itemIndex) => {
+                  const index = boxIndex * 5 + itemIndex;
+                  const valueExists = !!pred[index]?.value;
+                  const colorClass = colorList[index];
+                  
+                  let animationClass = '';
+                  if (valueExists && !colorClass) {
+                    animationClass = 'animate-pop';
+                  } else if (colorClass) {
+                    animationClass = 'animate-color';
+                  }
+                  
+                  if (winRow === boxIndex && colorClass === 'green') {
+                    animationClass += ' animate-win';
+                  }
+                  
+                  return (
+                    <div
+                      key={index}
+                      className={`korean-text ${colorClass || ''} ${animationClass}`.trim()}
+                    >
+                      {pred[index]?.value}
+                    </div>
+                  );
+                })}
+              </Box>
+            ))}
+          </Box>
+
+          {/* 键盘 */}
+          {!gotAnswer && !failAnswer && <Keyboard {...keyboardProps} />}
+        </div>
+
+        {/* 中心消息 */}
+        {isVisible && <CentralMessage message={centerMsg} />}
+
+        {/* 游戏结果弹窗 */}
+        {gameResults && (
+          <div className="pvp-room__results-overlay">
+            <div className="pvp-room__results">
+              <h2>{lang.pvp?.game_over || '游戏结束'}</h2>
+              
+              <div className="pvp-room__ranking">
+                {gameResults.map((result, index) => (
+                  <div 
+                    key={result.playerId} 
+                    className={`pvp-room__rank-item ${result.playerId === socket?.id ? 'current' : ''}`}
+                  >
+                    <span className="pvp-room__rank-position">
+                      {index === 0 && result.won && <FontAwesomeIcon icon={faTrophy} className="gold" />}
+                      {index === 1 && result.won && <FontAwesomeIcon icon={faMedal} className="silver" />}
+                      {index === 2 && result.won && <FontAwesomeIcon icon={faMedal} className="bronze" />}
+                      {(!result.won || index > 2) && `#${index + 1}`}
+                    </span>
+                    <span className="pvp-room__rank-name">{result.playerName}</span>
+                    <span className="pvp-room__rank-stats">
+                      {result.won 
+                        ? `${result.attempts} ${lang.pvp?.attempts || '次'} / ${(result.time / 1000).toFixed(1)}s`
+                        : lang.pvp?.failed || '未猜出'
+                      }
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* 答案展示 */}
+              <div className="pvp-room__answer-reveal">
+                <span>{lang.pvp?.answer_was || '正确答案'}:</span>
+                <span className="pvp-room__answer korean-text">{dict_answer?.key}</span>
+              </div>
+
+              <div className="pvp-room__results-actions">
+                {isHost ? (
+                  <button 
+                    className="pvp-room__again-btn"
+                    onClick={handlePlayAgain}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <FontAwesomeIcon icon={faSpinner} spin />
+                    ) : (
+                      <>
+                        <FontAwesomeIcon icon={faRedo} />
+                        {lang.pvp?.play_again || '再来一局'}
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <p className="pvp-room__wait-host">{lang.pvp?.wait_host || '等待房主开始下一局...'}</p>
+                )}
+                <button className="pvp-room__leave-btn" onClick={handleLeaveRoom}>
+                  <FontAwesomeIcon icon={faArrowLeft} />
+                  {lang.pvp?.leave || '离开房间'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default PvpRoom;
+
