@@ -30,7 +30,7 @@
     align-items: center;
     padding: var(--space-6) var(--space-4);
     gap: var(--tile-gap);
-    max-width: 350px;
+    max-width: 400px;
     width: 100%;
     
     // 入场动画
@@ -62,7 +62,7 @@
     height: var(--tile-size);
     // 韩语字母格子始终使用韩语字体
     font-family: var(--font-korean);
-    font-size: var(--text-2xl);
+    font-size: var(--text-3xl);
     font-weight: var(--font-bold);
     color: var(--color-text-primary);
     background: var(--color-bg-tertiary);
@@ -143,9 +143,9 @@
   // ─────────────────────────────────────────────────────────────────────────
   .keyboard {
     width: 100%;
-    max-width: 500px;
-    padding: var(--space-3) var(--space-2);
-    padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+    max-width: 580px;
+    padding: var(--space-4) var(--space-3);
+    padding-bottom: calc(var(--space-5) + env(safe-area-inset-bottom));
     background: var(--color-bg-secondary);
     border-top: 1px solid var(--color-border-light);
     
@@ -181,10 +181,10 @@
     justify-content: center;
     min-width: var(--key-width);
     height: var(--key-height);
-    padding: 0 var(--space-2);
+    padding: 0 var(--space-3);
     // 韩语键盘始终使用韩语字体
     font-family: var(--font-korean);
-    font-size: var(--text-lg);
+    font-size: var(--text-xl);
     font-weight: var(--font-semibold);
     color: var(--color-text-primary);
     background: var(--color-bg-tertiary);
@@ -217,8 +217,8 @@
   // 功能键（提交、删除）
   .keyboard .submit__btn,
   .keyboard .remove_btn {
-    min-width: 65px;
-    font-size: var(--text-sm);
+    min-width: 75px;
+    font-size: var(--text-base);
     font-weight: var(--font-medium);
   }
 
@@ -331,53 +331,132 @@
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 📱 响应式设计
+// 📱 响应式设计 - 三端适配（桌面 > 平板 > 移动端）
 // ═══════════════════════════════════════════════════════════════════════════
 
-@media (max-width: 500px) {
+// 平板端 (768px - 1024px)
+@media (max-width: 1024px) {
   .wordle-page {
+    &__answer-board {
+      max-width: 380px;
+    }
+    
+    .answer-box div {
+      width: var(--tile-size-tablet);
+      height: var(--tile-size-tablet);
+      font-size: var(--text-2xl);
+    }
+    
+    .keyboard {
+      max-width: 540px;
+    }
+    
+    .keyboard button {
+      min-width: var(--key-width-tablet);
+      height: var(--key-height-tablet);
+      font-size: var(--text-lg);
+      padding: 0 var(--space-2);
+    }
+    
+    .keyboard .submit__btn,
+    .keyboard .remove_btn {
+      min-width: 68px;
+      font-size: var(--text-sm);
+    }
+  }
+}
+
+// 移动端 (500px - 768px)
+@media (max-width: 768px) {
+  .wordle-page {
+    &__answer-board {
+      max-width: 340px;
+      padding: var(--space-4) var(--space-3);
+    }
+    
     .answer-box div {
       width: var(--tile-size-mobile);
       height: var(--tile-size-mobile);
+      font-size: var(--text-2xl);
+    }
+    
+    .keyboard {
+      max-width: 500px;
+      padding: var(--space-3) var(--space-2);
+    }
+    
+    .keyboard button {
+      min-width: var(--key-width-mobile);
+      height: var(--key-height-mobile);
+      font-size: var(--text-lg);
+      padding: 0 var(--space-2);
+    }
+    
+    .keyboard .submit__btn,
+    .keyboard .remove_btn {
+      min-width: 58px;
+      font-size: var(--text-sm);
+    }
+  }
+}
+
+// 小屏移动端 (< 500px)
+@media (max-width: 500px) {
+  .wordle-page {
+    --tile-gap: 6px;
+    --key-gap: 6px;
+    
+    &__answer-board {
+      max-width: 320px;
+    }
+    
+    .answer-box div {
+      width: var(--tile-size-small);
+      height: var(--tile-size-small);
       font-size: var(--text-xl);
     }
     
     .keyboard button {
       min-width: 36px;
-      height: 50px;
+      height: 52px;
       font-size: var(--text-base);
       padding: 0 var(--space-1);
     }
     
     .keyboard .submit__btn,
     .keyboard .remove_btn {
-      min-width: 50px;
+      min-width: 52px;
       font-size: var(--text-xs);
     }
   }
 }
 
+// 超小屏幕 (< 370px)
 @media (max-width: 370px) {
   .wordle-page {
-    --tile-gap: 4px;
-    --key-gap: 4px;
+    --tile-gap: 5px;
+    --key-gap: 5px;
+    
+    &__answer-board {
+      max-width: 280px;
+    }
     
     .answer-box div {
-      width: 44px;
-      height: 44px;
+      width: 46px;
+      height: 46px;
       font-size: var(--text-lg);
     }
     
     .keyboard button {
-      min-width: 30px;
-      height: 46px;
+      min-width: 32px;
+      height: 48px;
       font-size: var(--text-sm);
       border-radius: var(--radius-sm);
     }
     
     .keyboard .submit__btn,
     .keyboard .remove_btn {
-      min-width: 42px;
+      min-width: 46px;
     }
   }
 }
@@ -390,8 +469,8 @@
     }
     
     .answer-box div {
-      width: 40px;
-      height: 40px;
+      width: 44px;
+      height: 44px;
       font-size: var(--text-lg);
     }
     
@@ -400,7 +479,7 @@
     }
     
     .keyboard button {
-      height: 44px;
+      height: 46px;
     }
   }
 }

@@ -142,6 +142,12 @@ export const ko = {
     ),
   },
   failed: "아쉬워요! 다시 도전해보세요!😔",
+  share: {
+    button: "공유",
+    copied: "복사됨!",
+    attempts: "번 시도",
+    answer: "정답",
+  },
   center_msg: {
     lack: "글자 수가 충분하지 않습니다.",
     much: "입력값을 초과했습니다.",

@@ -204,15 +204,21 @@ $breakpoint-xl: 1280px;
 // 🎮 游戏特定变量
 // ═══════════════════════════════════════════════════════════════════════════
 :root {
-  // 格子尺寸
-  --tile-size: 58px;
-  --tile-size-mobile: 48px;
-  --tile-gap: 6px;
+  // 格子尺寸 - 桌面端
+  --tile-size: 68px;
+  --tile-size-tablet: 62px;
+  --tile-size-mobile: 56px;
+  --tile-size-small: 50px;
+  --tile-gap: 8px;
   
-  // 键盘键尺寸
-  --key-height: 58px;
-  --key-width: 44px;
-  --key-gap: 6px;
+  // 键盘键尺寸 - 桌面端
+  --key-height: 64px;
+  --key-width: 52px;
+  --key-height-tablet: 58px;
+  --key-width-tablet: 46px;
+  --key-height-mobile: 54px;
+  --key-width-mobile: 40px;
+  --key-gap: 7px;
   
   // 翻转动画延迟步进
   --flip-delay-step: 150ms;

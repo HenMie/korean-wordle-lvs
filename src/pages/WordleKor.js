@@ -350,6 +350,9 @@ function WordleKorPage() {
           rounds={pred.length}
           fail={failAnswer}
           answer={dict_answer.key}
+          colorList={colorList}
+          wordIndex={wordIndex}
+          mode={mode}
         />
       )}
     </div>

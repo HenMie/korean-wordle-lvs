@@ -140,6 +140,12 @@ export const en = {
     ),
   },
   failed: "So close! Give it another shot!😔",
+  share: {
+    button: "Share",
+    copied: "Copied!",
+    attempts: "attempts",
+    answer: "Answer",
+  },
   center_msg: {
     lack: "Not enough letters.",
     much: "Input exceeds limit.",
