@@ -297,6 +297,37 @@
         background: var(--color-dark-bg-elevated);
         border-color: var(--color-dark-border-medium);
       }
+      
+      // 深色模式下的状态颜色
+      &.green {
+        background-color: var(--color-correct);
+        border-color: var(--color-correct-border);
+        color: #ffffff;
+        
+        &:hover:not(:disabled) {
+          background-color: var(--color-correct-border);
+        }
+      }
+      
+      &.yellow {
+        background-color: var(--color-present);
+        border-color: var(--color-present-border);
+        color: #ffffff;
+        
+        &:hover:not(:disabled) {
+          background-color: var(--color-present-border);
+        }
+      }
+      
+      &.gray {
+        background-color: var(--color-absent);
+        border-color: var(--color-absent-border);
+        color: #ffffff;
+        
+        &:hover:not(:disabled) {
+          background-color: var(--color-absent-border);
+        }
+      }
     }
   }
 
