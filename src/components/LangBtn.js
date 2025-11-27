@@ -109,9 +109,9 @@ export default function AccountMenu() {
         <MenuItem onClick={() => handleSelectLangs("en")}>
           <Avatar src={uk_flag} sx={{ width: 25, height: 25 }} /> English
         </MenuItem>
-        {/* <MenuItem onClick={() => handleSelectLangs("de")}>
+        <MenuItem onClick={() => handleSelectLangs("de")}>
           <Avatar src={de_flag} sx={{ width: 25, height: 25 }} /> Deutsch
-        </MenuItem> */}
+        </MenuItem>
         <MenuItem onClick={() => handleSelectLangs("el")}>
           <Avatar src={gr_flag} sx={{ width: 25, height: 25 }} /> Ελληνικά
         </MenuItem>

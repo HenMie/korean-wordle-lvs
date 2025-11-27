@@ -141,7 +141,13 @@ export const de = {
       </>
     ),
   },
-  failed: "So close! Versuchen Sie es noch einmal!😔",
+  failed: "So nah! Versuchen Sie es noch einmal!😔",
+  share: {
+    button: "Teilen",
+    copied: "Kopiert!",
+    attempts: "Versuche",
+    answer: "Antwort",
+  },
   center_msg: {
     lack: "Nicht genug Buchstaben.",
     much: "Input exceeds limit.",
