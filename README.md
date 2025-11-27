@@ -119,6 +119,29 @@ This project uses GitHub Actions to automatically build and push Docker images t
    - `DOCKERHUB_USERNAME`: Your Docker Hub username
    - `DOCKERHUB_TOKEN`: Docker Hub Access Token (generate in Docker Hub Account Settings → Security)
 
+### Version Management
+
+This project uses automated version management. To release a new version:
+
+```bash
+# Patch release (1.1.1 → 1.1.2) - bug fixes
+npm run release:patch
+
+# Minor release (1.1.1 → 1.2.0) - new features
+npm run release:minor
+
+# Major release (1.1.1 → 2.0.0) - breaking changes
+npm run release:major
+```
+
+This will automatically:
+1. Run tests (if available)
+2. Update version in `package.json`
+3. Sync version to `docker-compose.yml`
+4. Create a git commit and tag
+5. Push to remote with tags
+6. Trigger GitHub Actions to build Docker image and create Release
+
 ## Project Structure
 
 ```
