@@ -16,7 +16,7 @@ const InfoPageOne = () => {
           <div>ㅡ</div>
           <div>ㄹ</div>
         </div>
-        <p className="text-explain">{lang.info.sub_desc1}</p>
+        <p className="example__text-explain">{lang.info.sub_desc1}</p>
         <div className="example__div">
           <div>ㄴ</div>
           <div className="yellow btn--active">ㅓ</div>
