@@ -31,7 +31,10 @@ function RandomRedirect() {
 
 function App() {
   return (
-    <Router basename={`${process.env.PUBLIC_URL}`}>
+    <Router 
+      basename={`${process.env.PUBLIC_URL}`}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/play/:mode/:id" element={<WordleKor />} />

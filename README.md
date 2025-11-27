@@ -36,7 +36,60 @@ For more information, see *Information Modal* in the game.
 | Icons | FontAwesome |
 | Build Tool | CRACO (Create React App Configuration Override) |
 | SEO | React Helmet |
-| Deployment | Vercel |
+| Deployment | Vercel, Docker |
+
+## Docker Deployment
+
+### Prerequisites
+- Docker
+- Docker Compose
+
+### Quick Start
+
+1. **Create configuration file**
+
+```bash
+# Linux/Mac
+cp env.example .env
+
+# Windows
+copy env.example .env
+```
+
+2. **Configure environment variables** (optional)
+
+Edit `.env` file to customize:
+
+```ini
+# Container name
+CONTAINER_NAME=korean-wordle
+
+# Host port mapping (access via http://localhost:HOST_PORT)
+HOST_PORT=3000
+
+# Timezone
+TZ=Asia/Shanghai
+
+# Docker network name
+NETWORK_NAME=korean-wordle-network
+```
+
+3. **Build and run**
+
+```bash
+# Build and start container
+docker-compose up -d --build
+
+# View logs
+docker-compose logs -f
+
+# Stop container
+docker-compose down
+```
+
+4. **Access the application**
+
+Open your browser and visit: `http://localhost:3000` (or your configured port)
 
 ## Project Structure
 

@@ -21,7 +21,7 @@ import allDeposedWords from "@assets/all-deposed-words.json";
 
 // Lang
 import { useLanguage } from "@contexts/LanguageContext";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 
 const modeMap = {
   easy: easyMode,

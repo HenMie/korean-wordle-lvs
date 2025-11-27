@@ -7,7 +7,7 @@ import "@styles/pages/_home.scss";
 
 // Component
 import Header from "@components/Header";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 
 // State
 import { useRecoilValue } from "recoil";

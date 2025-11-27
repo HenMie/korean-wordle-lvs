@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { RecoilRoot } from "recoil";
+import { HelmetProvider } from "react-helmet-async";
 import { LanguageProvider } from "@contexts/LanguageContext";
 import App from "./App";
 
@@ -8,9 +9,11 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <RecoilRoot>
-      <LanguageProvider>
-        <App />
-      </LanguageProvider>
+      <HelmetProvider>
+        <LanguageProvider>
+          <App />
+        </LanguageProvider>
+      </HelmetProvider>
     </RecoilRoot>
   </React.StrictMode>
 );
