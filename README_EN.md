@@ -4,10 +4,26 @@
 
 This is the Korean version of Wordle. The game uses a random word mode - each time you start a new game, a random word is selected as the answer, allowing unlimited play! This Wordle game only supports nouns and standard language (no dialect or slang).
 
-## Difficulty Levels
-- **초급(Easy)**: Use common words, great for beginners.
-- **중급(Medium)**: A balanced challenge with moderately difficult words.
-- **고급(Hard)**: Rare difficult words for advanced players.
+## Game Modes
+
+### 5-Letter Mode (Classic)
+The standard mode where you guess words made of 5 Korean characters.
+
+| Difficulty | Description |
+|------------|-------------|
+| **초급 (Easy)** | Common words, great for beginners |
+| **중급 (Medium)** | A balanced challenge with moderately difficult words |
+| **고급 (Hard)** | Rare difficult words for advanced players |
+
+### 6-Letter Mode
+Advanced mode where you guess words made of 6 Korean characters - a greater challenge with longer words!
+
+| Difficulty | Description |
+|------------|-------------|
+| **중급 (Medium)** | Medium difficulty 6-letter words |
+| **고급 (Hard)** | Hard difficulty 6-letter words |
+
+> **Note:** 6-letter mode does not include Easy difficulty.
 
 ## How to Play
 1. **Choose Difficulty**: Select from Easy, Medium, or Hard.
@@ -21,6 +37,7 @@ This is the Korean version of Wordle. The game uses a random word mode - each ti
 For more information, see *Information Modal* in the game.
 
 ## Features
+- **Dual Mode Selection**: Supports 5-letter mode (classic) and 6-letter mode (advanced) to meet different challenge needs.
 - **Random Word Mode**: Each game generates a random answer, allowing unlimited challenges.
 - **Dark Mode**: Reduce eye strain with a darker color palette, perfect for night-time play.
 - **Colorblind Mode**: Enjoy the game without color barriers.
@@ -28,7 +45,7 @@ For more information, see *Information Modal* in the game.
 - **Keyboard**: Keyboard input is supported.
 - **Multi-language Support**: Available in Korean, English, Chinese, German, and Greek.
 - **Game State Persistence**: Your progress is saved automatically.
-- **PVP Battle Mode**: Compete with friends (2-4 players) in real-time to see who guesses the word fastest!
+- **PVP Battle Mode**: Compete with friends (2-4 players) in real-time with both 5-letter and 6-letter modes to see who guesses the word fastest!
 
 ## Tech Stack
 
@@ -228,11 +245,13 @@ This will automatically:
 The PVP mode allows 2-4 players to compete in real-time, guessing the same word simultaneously.
 
 ### How to Play PVP
-1. **Create a Room**: Click "PVP Battle" on the home page, enter your nickname, select difficulty and max players, then create a room.
+1. **Create a Room**: Click "PVP Battle" on the home page, enter your nickname, select game mode (Race/Timed), word length (5/6 letters), and difficulty, then create a room.
 2. **Share Room Code**: Share the 6-digit room code or invite link with your friends.
 3. **Ready Up**: Once all players join, non-host players click "Ready". The host starts the game when everyone is ready.
 4. **Race to Guess**: Everyone guesses the same word. The first to guess correctly wins!
 5. **View Results**: After all players finish, view the ranking based on success and time.
+
+> **Tip:** PVP mode also supports both 5-letter and 6-letter modes. 6-letter mode only has Medium and Hard difficulty options.
 
 ### Running PVP Server Locally
 
@@ -260,10 +279,13 @@ npm start
 src/
 ├── assets/                 # Static assets
 │   ├── flags/              # Language flag icons
-│   ├── easy-mode.json      # Easy difficulty word list
-│   ├── imdt-mode.json      # Medium difficulty word list
-│   ├── hard-mode.json      # Hard difficulty word list
-│   ├── all-deposed-words.json  # Valid word dictionary
+│   ├── easy-mode.json      # 5-letter Easy difficulty word list
+│   ├── imdt-mode.json      # 5-letter Medium difficulty word list
+│   ├── hard-mode.json      # 5-letter Hard difficulty word list
+│   ├── imdt-mode-6.json    # 6-letter Medium difficulty word list
+│   ├── hard-mode-6.json    # 6-letter Hard difficulty word list
+│   ├── all-deposed-words.json    # 5-letter valid word dictionary
+│   ├── all-deposed-words-6.json  # 6-letter valid word dictionary
 │   └── *.svg               # UI icons
 │
 ├── components/             # Reusable UI components
@@ -291,10 +313,11 @@ src/
 │
 ├── pages/                  # Page components
 │   ├── Home.js             # Home page with difficulty selection
-│   ├── WordleKor.js        # Main game page
+│   ├── WordleKor.js        # 5-letter mode game page
+│   ├── WordleKor6.js       # 6-letter mode game page
 │   ├── NotFound.js         # 404 page
 │   ├── PvpLobby.js         # PVP lobby (create/join room)
-│   ├── PvpRoom.js          # PVP waiting room and game
+│   ├── PvpRoom.js          # PVP waiting room and game (supports 5/6-letter)
 │   └── modal/              # Info modal pages (7 slides)
 │
 ├── state/                  # Recoil state atoms
