@@ -5,6 +5,11 @@ export const ko = {
   lv1: "초급",
   lv2: "중급",
   lv3: "고급",
+  mode6: {
+    title: "6글자 모드",
+    imdt: "중급",
+    hard: "고급",
+  },
   submit: "제출",
   setting: "설정",
   settings: {

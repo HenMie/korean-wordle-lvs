@@ -5,6 +5,11 @@ export const en = {
   lv1: "Beginner",
   lv2: "Intermediate",
   lv3: "Advanced",
+  mode6: {
+    title: "6-Letter Mode",
+    imdt: "Intermediate",
+    hard: "Advanced",
+  },
   submit: "Submit",
   setting: "Settings",
   settings: {

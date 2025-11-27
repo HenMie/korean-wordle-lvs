@@ -25,6 +25,9 @@ import iconBoth from "@assets/wordle-icon-both.svg";
 import hardMode from "@assets/hard-mode.json";
 import imdtMode from "@assets/imdt-mode.json";
 import easyMode from "@assets/easy-mode.json";
+// 6字模式词库
+import imdtMode6 from "@assets/imdt-mode-6.json";
+import hardMode6 from "@assets/hard-mode-6.json";
 
 import { useLanguage } from "@contexts/LanguageContext";
 
@@ -32,6 +35,11 @@ const modeMap = {
   easy: easyMode,
   imdt: imdtMode,
   hard: hardMode,
+};
+
+const modeMap6 = {
+  imdt: imdtMode6,
+  hard: hardMode6,
 };
 
 function HomePage() {
@@ -53,6 +61,12 @@ function HomePage() {
     const wordList = modeMap[difficulty];
     const randomId = Math.floor(Math.random() * wordList.length);
     navigate(`/play/${difficulty}/${randomId}`);
+  };
+
+  const handleNavigation6 = (mode) => {
+    const wordList = modeMap6[mode];
+    const randomId = Math.floor(Math.random() * wordList.length);
+    navigate(`/play6/${mode}/${randomId}`);
   };
 
   return (
@@ -102,6 +116,25 @@ function HomePage() {
             </button>
           </div>
           
+          {/* 6字模式 */}
+          <div className="homepage__six-letter-section">
+            <p className="homepage__text homepage__text--level">{lang.mode6?.title || "6字模式"}</p>
+            <div className="homepage__buttons homepage__buttons--6">
+              <button
+                className="homepage__button homepage__button--imdt6"
+                onClick={() => handleNavigation6("imdt")}
+              >
+                {lang.mode6?.imdt || "中级"}
+              </button>
+              <button
+                className="homepage__button homepage__button--hard6"
+                onClick={() => handleNavigation6("hard")}
+              >
+                {lang.mode6?.hard || "高级"}
+              </button>
+            </div>
+          </div>
+
           {/* PVP Mode */}
           <div className="homepage__pvp-section">
             <button

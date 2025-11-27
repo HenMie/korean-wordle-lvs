@@ -5,6 +5,11 @@ export const zh = {
   lv1: "初级",
   lv2: "中级",
   lv3: "高级",
+  mode6: {
+    title: "6字模式",
+    imdt: "中级",
+    hard: "高级",
+  },
   submit: "提交",
   setting: "设置",
   settings: {

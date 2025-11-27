@@ -5,6 +5,11 @@ export const de = {
   lv1: "Anfänger",
   lv2: "Mittelstufe",
   lv3: "Fortgeschrittene",
+  mode6: {
+    title: "6-Buchstaben-Modus",
+    imdt: "Mittelstufe",
+    hard: "Fortgeschrittene",
+  },
   submit: "Einreichen",
   setting: "Einstellungen",
   settings: {

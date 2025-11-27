@@ -19,7 +19,8 @@ import {
   faRedo,
   faBolt,
   faClock,
-  faCog
+  faCog,
+  faFont
 } from '@fortawesome/free-solid-svg-icons';
 import { Box } from '@mui/material';
 
@@ -29,18 +30,31 @@ import CentralMessage from '@components/CentralMessage';
 import { useSocket } from '@contexts/SocketContext';
 import { useLanguage } from '@contexts/LanguageContext';
 
+// 5字模式词库
 import hardMode from '@assets/hard-mode.json';
 import imdtMode from '@assets/imdt-mode.json';
 import easyMode from '@assets/easy-mode.json';
 import allDeposedWords from '@assets/all-deposed-words.json';
 
+// 6字模式词库
+import hardMode6 from '@assets/hard-mode-6.json';
+import imdtMode6 from '@assets/imdt-mode-6.json';
+import allDeposedWords6 from '@assets/all-deposed-words-6.json';
+
 import '@styles/pages/_wordleKor.scss';
 import '@styles/pages/_pvpRoom.scss';
 
+// 5字模式映射
 const modeMap = {
   easy: easyMode,
   imdt: imdtMode,
   hard: hardMode,
+};
+
+// 6字模式映射
+const modeMap6 = {
+  imdt: imdtMode6,
+  hard: hardMode6,
 };
 
 function PvpRoom() {
@@ -67,6 +81,7 @@ function PvpRoom() {
   const [error, setError] = useState('');
   const [showSettings, setShowSettings] = useState(false);
   const [editDifficulty, setEditDifficulty] = useState('easy');
+  const [editWordLength, setEditWordLength] = useState(5);
   const [editGameMode, setEditGameMode] = useState('race');
   const [editTimeLimit, setEditTimeLimit] = useState(3);
 
@@ -88,7 +103,9 @@ function PvpRoom() {
   const [solvedCount, setSolvedCount] = useState(0); // 答对题目数
   const [remainingTime, setRemainingTime] = useState(null); // 剩余时间（秒）
 
-  const MAX_PRED_LENGTH = 30;
+  // 根据房间设置确定字数
+  const WORD_LENGTH = room?.wordLength || 5;
+  const MAX_PRED_LENGTH = 6 * WORD_LENGTH; // 6行 × 字数
 
   // 获取当前玩家信息
   const currentPlayer = useMemo(() => {
@@ -98,12 +115,19 @@ function PvpRoom() {
 
   const isHost = currentPlayer?.isHost || false;
 
+  // 获取词库 - 根据字数选择
+  const validWordsSet = useMemo(() => {
+    return WORD_LENGTH === 6 ? allDeposedWords6 : allDeposedWords;
+  }, [WORD_LENGTH]);
+
   // 获取答案
   const { dict_answer, answer } = useMemo(() => {
     if (!room || !room.difficulty) {
       return { dict_answer: null, answer: '' };
     }
-    const wordList = modeMap[room.difficulty];
+    // 根据字数选择词库
+    const wordListMap = WORD_LENGTH === 6 ? modeMap6 : modeMap;
+    const wordList = wordListMap[room.difficulty];
     if (!wordList) {
       return { dict_answer: null, answer: '' };
     }
@@ -124,7 +148,7 @@ function PvpRoom() {
     }
     const dictAnswer = wordList[room.wordIndex];
     return { dict_answer: dictAnswer, answer: dictAnswer.value };
-  }, [room, wordIndices, currentWordIdx]);
+  }, [room, wordIndices, currentWordIdx, WORD_LENGTH]);
 
   // 连接并加入房间
   useEffect(() => {
@@ -155,10 +179,11 @@ function PvpRoom() {
     if (!socket) return;
 
     const handleGameStarted = ({ wordIndex, wordIndices: indices, room: roomData }) => {
-      // 重置游戏状态
+      // 重置游戏状态 - 使用房间的字数设置
+      const wordLen = roomData.wordLength || 5;
       setPred([]);
       setColorList([]);
-      setListLen(5);
+      setListLen(wordLen);
       setGotAnswer(false);
       setFailAnswer(false);
       setShakeRow(-1);
@@ -180,9 +205,10 @@ function PvpRoom() {
     const handleProgressUpdated = ({ playerId, progress, won, nextWord, newWordIndex, room: roomData }) => {
       // 限时模式：如果是自己且需要跳转下一题
       if (playerId === socket.id && nextWord && roomData.gameMode === 'timed') {
+        const wordLen = roomData.wordLength || 5;
         setPred([]);
         setColorList([]);
-        setListLen(5);
+        setListLen(wordLen);
         setGotAnswer(false);
         setCurrentWordIdx(newWordIndex);
         if (won) {
@@ -221,7 +247,9 @@ function PvpRoom() {
   const handleStartGame = async () => {
     if (!room) return;
     
-    const wordList = modeMap[room.difficulty];
+    // 根据字数选择词库
+    const wordListMap = WORD_LENGTH === 6 ? modeMap6 : modeMap;
+    const wordList = wordListMap[room.difficulty];
     if (!wordList) return;
 
     setLoading(true);
@@ -259,6 +287,7 @@ function PvpRoom() {
   const handleOpenSettings = () => {
     if (room) {
       setEditDifficulty(room.difficulty);
+      setEditWordLength(room.wordLength || 5);
       setEditGameMode(room.gameMode);
       setEditTimeLimit(room.timeLimit || 3);
     }
@@ -271,6 +300,7 @@ function PvpRoom() {
     try {
       await updateRoomSettings({
         difficulty: editDifficulty,
+        wordLength: editWordLength,
         gameMode: editGameMode,
         timeLimit: editGameMode === 'timed' ? editTimeLimit : null
       });
@@ -305,10 +335,10 @@ function PvpRoom() {
   const showMessage = useCallback((m) => {
     setCenterMsg(m);
     setIsVisible(true);
-    const currentRow = Math.floor(pred.length / 5);
+    const currentRow = Math.floor(pred.length / WORD_LENGTH);
     triggerShake(currentRow);
     setTimeout(() => setIsVisible(false), 3000);
-  }, [pred.length, triggerShake]);
+  }, [pred.length, triggerShake, WORD_LENGTH]);
 
   const updateColorPredList = useCallback((predList, ans, len) => {
     const updatedColorList = [];
@@ -320,16 +350,16 @@ function PvpRoom() {
       answerLetterCount[char] = (answerLetterCount[char] || 0) + 1;
     }
 
-    for (let i = len - 5; i < len; i++) {
+    for (let i = len - WORD_LENGTH; i < len; i++) {
       const item = predList[i];
       if (!item) {
         showMessage(lang.center_msg.lack);
         continue;
       }
 
-      if (ans[i - len + 5] === item.value) {
+      if (ans[i - len + WORD_LENGTH] === item.value) {
         item.color = 'green';
-        answerUsed[i - len + 5] = true;
+        answerUsed[i - len + WORD_LENGTH] = true;
         answerLetterCount[item.value]--;
         updatedColorList.push('green');
       } else {
@@ -339,9 +369,9 @@ function PvpRoom() {
       item.deletable = false;
     }
 
-    for (let i = len - 5; i < len; i++) {
+    for (let i = len - WORD_LENGTH; i < len; i++) {
       const item = predList[i];
-      if (updatedColorList[i - len + 5] === 'green') continue;
+      if (updatedColorList[i - len + WORD_LENGTH] === 'green') continue;
 
       const charIndex = answerArray.findIndex(
         (char, idx) => char === item.value && !answerUsed[idx]
@@ -351,21 +381,21 @@ function PvpRoom() {
         item.color = 'yellow';
         answerUsed[charIndex] = true;
         answerLetterCount[item.value]--;
-        updatedColorList[i - len + 5] = 'yellow';
+        updatedColorList[i - len + WORD_LENGTH] = 'yellow';
       } else {
         item.color = 'gray';
-        updatedColorList[i - len + 5] = 'gray';
+        updatedColorList[i - len + WORD_LENGTH] = 'gray';
       }
 
       item.deletable = false;
     }
 
     return updatedColorList;
-  }, [showMessage, lang.center_msg.lack]);
+  }, [showMessage, lang.center_msg.lack, WORD_LENGTH]);
 
   const handleSubmitButtonClick = useCallback(() => {
     if (
-      pred.length % 5 !== 0 ||
+      pred.length % WORD_LENGTH !== 0 ||
       pred.length === 0 ||
       !pred[pred.length - 1].deletable
     ) {
@@ -373,26 +403,26 @@ function PvpRoom() {
     }
 
     const submitted = pred
-      .slice(-5)
+      .slice(-WORD_LENGTH)
       .map((obj) => obj.value)
       .join('');
-    if (!allDeposedWords.includes(submitted)) {
+    if (!validWordsSet.includes(submitted)) {
       return showMessage(lang.center_msg.wrong);
     }
 
-    setListLen((prev) => prev + 5);
+    setListLen((prev) => prev + WORD_LENGTH);
 
     const updatedColorList = updateColorPredList(pred, answer, listLen);
     setPred([...pred]);
     setColorList(prevColors => prevColors.concat(updatedColorList));
 
     const correctCount = updatedColorList.filter((color) => color === 'green').length;
-    const currentRow = Math.floor((pred.length - 1) / 5);
+    const currentRow = Math.floor((pred.length - 1) / WORD_LENGTH);
     const currentProgress = currentRow + 1;
 
-    if (correctCount === 5) {
+    if (correctCount === WORD_LENGTH) {
       // 胜利
-      setTimeout(() => setWinRow(currentRow), 5 * 150 + 500);
+      setTimeout(() => setWinRow(currentRow), WORD_LENGTH * 150 + 500);
       setTimeout(() => {
         if (room?.gameMode === 'timed') {
           // 限时模式：不设置gotAnswer，让玩家继续下一题
@@ -401,7 +431,7 @@ function PvpRoom() {
           setGotAnswer(true);
           updateProgress(currentProgress, true, correctCount);
         }
-      }, 5 * 150 + 1200);
+      }, WORD_LENGTH * 150 + 1200);
     } else if (pred.length === MAX_PRED_LENGTH) {
       // 失败
       setTimeout(() => {
@@ -412,12 +442,12 @@ function PvpRoom() {
           setFailAnswer(true);
           updateProgress(currentProgress, false, correctCount);
         }
-      }, 5 * 150 + 500);
+      }, WORD_LENGTH * 150 + 500);
     } else {
       // 更新进度
       updateProgress(currentProgress, false, correctCount);
     }
-  }, [pred, answer, listLen, updateColorPredList, showMessage, lang.center_msg.lack, lang.center_msg.wrong, updateProgress, room?.gameMode]);
+  }, [pred, answer, listLen, updateColorPredList, showMessage, lang.center_msg.lack, lang.center_msg.wrong, updateProgress, room?.gameMode, WORD_LENGTH, MAX_PRED_LENGTH, validWordsSet]);
 
   const keyboardProps = useMemo(() => ({
     pred,
@@ -493,6 +523,12 @@ function PvpRoom() {
                 </span>
               </div>
               <div className="pvp-room__info-item">
+                <span>{lang.pvp?.word_length || '字数'}:</span>
+                <span className="pvp-room__info-value">
+                  {WORD_LENGTH}{lang.pvp?.letters || '字'}
+                </span>
+              </div>
+              <div className="pvp-room__info-item">
                 <span>{lang.pvp?.difficulty || '难度'}:</span>
                 <span className="pvp-room__info-value">
                   {room.difficulty === 'easy' ? lang.lv1 : room.difficulty === 'imdt' ? lang.lv2 : lang.lv3}
@@ -551,17 +587,48 @@ function PvpRoom() {
                     </div>
                   </div>
                 )}
+
+                {/* 字数选择 */}
+                <div className="pvp-room__settings-field">
+                  <label>
+                    <FontAwesomeIcon icon={faFont} style={{ marginRight: '6px' }} />
+                    {lang.pvp?.word_length || '字数'}
+                  </label>
+                  <div className="pvp-room__settings-options">
+                    <button 
+                      className={editWordLength === 5 ? 'active' : ''}
+                      onClick={() => setEditWordLength(5)}
+                    >
+                      5{lang.pvp?.letters || '字'}
+                    </button>
+                    <button 
+                      className={editWordLength === 6 ? 'active' : ''}
+                      onClick={() => {
+                        setEditWordLength(6);
+                        // 6字模式没有初级难度
+                        if (editDifficulty === 'easy') {
+                          setEditDifficulty('imdt');
+                        }
+                      }}
+                    >
+                      6{lang.pvp?.letters || '字'}
+                    </button>
+                  </div>
+                </div>
                 
                 {/* 难度 */}
                 <div className="pvp-room__settings-field">
                   <label>{lang.pvp?.difficulty || '难度'}</label>
                   <div className="pvp-room__settings-options">
-                    <button 
-                      className={editDifficulty === 'easy' ? 'active' : ''}
-                      onClick={() => setEditDifficulty('easy')}
-                    >
-                      {lang.lv1 || '初级'}
-                    </button>
+                    {/* 5字模式才显示初级 */}
+                    {editWordLength === 5 && (
+                      <button 
+                        className={editDifficulty === 'easy' ? 'active' : ''}
+                        onClick={() => setEditDifficulty('easy')}
+                      >
+                        {lang.lv1 || '初级'}
+                      </button>
+                    )}
                     <button 
                       className={editDifficulty === 'imdt' ? 'active' : ''}
                       onClick={() => setEditDifficulty('imdt')}
@@ -737,16 +804,16 @@ function PvpRoom() {
             ))}
         </div>
 
-        <div className="pvp-room__play-area wordle-page">
+        <div className={`pvp-room__play-area wordle-page ${WORD_LENGTH === 6 ? 'wordle-page--6' : ''}`}>
           {/* 游戏面板 */}
-          <Box className="wordle-page__answer-board">
+          <Box className={`wordle-page__answer-board ${WORD_LENGTH === 6 ? 'wordle-page__answer-board--6' : ''}`}>
             {[...Array(6)].map((_, boxIndex) => (
               <Box 
                 key={boxIndex} 
-                className={`answer-box ${shakeRow === boxIndex ? 'shake' : ''}`}
+                className={`answer-box ${WORD_LENGTH === 6 ? 'answer-box--6' : ''} ${shakeRow === boxIndex ? 'shake' : ''}`}
               >
-                {[...Array(5)].map((_, itemIndex) => {
-                  const index = boxIndex * 5 + itemIndex;
+                {[...Array(WORD_LENGTH)].map((_, itemIndex) => {
+                  const index = boxIndex * WORD_LENGTH + itemIndex;
                   const valueExists = !!pred[index]?.value;
                   const colorClass = colorList[index];
                   
@@ -820,7 +887,7 @@ function PvpRoom() {
                         // 竞速模式：显示尝试次数/时间或正确字母数
                         result.won 
                           ? `${result.attempts} ${lang.pvp?.attempts || '次'} / ${(result.time / 1000).toFixed(1)}s`
-                          : `${result.correctCount || 0}/5 ${lang.pvp?.correct_letters || '正确'}`
+                          : `${result.correctCount || 0}/${WORD_LENGTH} ${lang.pvp?.correct_letters || '正确'}`
                       )}
                     </span>
                   </div>

@@ -514,3 +514,89 @@
     }
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 🔢 6字模式特殊样式
+// ═══════════════════════════════════════════════════════════════════════════
+
+.wordle-page--6 {
+  // 6字模式答案盘面
+  .wordle-page__answer-board--6 {
+    max-width: 480px;
+  }
+  
+  // 6字模式行容器
+  .answer-box--6 {
+    div {
+      width: calc(var(--tile-size) * 0.85);
+      height: calc(var(--tile-size) * 0.85);
+      font-size: var(--text-2xl);
+    }
+  }
+  
+  // 6字模式动画延迟 - 第6个格子
+  .animate-color {
+    &:nth-child(6) { animation-delay: calc(5 * var(--flip-delay-step)); }
+  }
+  
+  .animate-win {
+    &:nth-child(6) { animation-delay: calc(5 * 100ms); }
+  }
+}
+
+// 6字模式响应式
+@media (max-width: 1024px) {
+  .wordle-page--6 {
+    .wordle-page__answer-board--6 {
+      max-width: 440px;
+    }
+    
+    .answer-box--6 div {
+      width: calc(var(--tile-size-tablet) * 0.85);
+      height: calc(var(--tile-size-tablet) * 0.85);
+      font-size: var(--text-xl);
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .wordle-page--6 {
+    .wordle-page__answer-board--6 {
+      max-width: 400px;
+    }
+    
+    .answer-box--6 div {
+      width: calc(var(--tile-size-mobile) * 0.85);
+      height: calc(var(--tile-size-mobile) * 0.85);
+      font-size: var(--text-xl);
+    }
+  }
+}
+
+@media (max-width: 500px) {
+  .wordle-page--6 {
+    .wordle-page__answer-board--6 {
+      max-width: 360px;
+    }
+    
+    .answer-box--6 div {
+      width: calc(var(--tile-size-small) * 0.82);
+      height: calc(var(--tile-size-small) * 0.82);
+      font-size: var(--text-lg);
+    }
+  }
+}
+
+@media (max-width: 370px) {
+  .wordle-page--6 {
+    .wordle-page__answer-board--6 {
+      max-width: 320px;
+    }
+    
+    .answer-box--6 div {
+      width: 38px;
+      height: 38px;
+      font-size: var(--text-base);
+    }
+  }
+}

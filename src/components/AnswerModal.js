@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "@styles/components/_modal.scss";
 import dictionary from "@assets/dictionary.json";
+import dictionary6 from "@assets/dictionary-6.json";
 import { useLanguage } from "@contexts/LanguageContext";
 
 const AnswerPopup = (props) => {
@@ -12,10 +13,11 @@ const AnswerPopup = (props) => {
     answer, 
     colorList = [], 
     wordIndex, 
-    mode 
+    mode,
+    wordLength = 5  // 默认5字模式
   } = props;
 
-  const attempts = Math.floor(rounds / 5);
+  const attempts = Math.floor(rounds / wordLength);
   let msg = "";
 
   switch (attempts) {
@@ -76,8 +78,8 @@ const AnswerPopup = (props) => {
   // 生成分享内容的颜色方块
   const generateShareGrid = useCallback(() => {
     const rows = [];
-    for (let i = 0; i < colorList.length; i += 5) {
-      const row = colorList.slice(i, i + 5).map(color => {
+    for (let i = 0; i < colorList.length; i += wordLength) {
+      const row = colorList.slice(i, i + wordLength).map(color => {
         switch (color) {
           case 'green':
             return '🟩';
@@ -91,16 +93,20 @@ const AnswerPopup = (props) => {
       rows.push(row);
     }
     return rows.join('\n');
-  }, [colorList]);
+  }, [colorList, wordLength]);
 
   // 处理分享功能
   const handleShare = useCallback(async () => {
     const puzzleNum = wordIndex + 1;
     const attemptsText = failAnswer ? 'X' : attempts;
     const baseUrl = window.location.origin;
-    const puzzleUrl = `${baseUrl}/play/${mode}/${wordIndex}`;
+    // 根据字数选择正确的路由
+    const playPath = wordLength === 6 ? 'play6' : 'play';
+    const puzzleUrl = `${baseUrl}/${playPath}/${mode}/${wordIndex}`;
+    // 分享文本中标识字数
+    const modeLabel = wordLength === 6 ? `${mode}(6)` : mode;
     
-    const shareText = `한글 Wordle ${mode}#${puzzleNum} ${attemptsText}/6
+    const shareText = `한글 Wordle ${modeLabel}#${puzzleNum} ${attemptsText}/6
 
 ${puzzleUrl}
 
@@ -128,7 +134,7 @@ ${generateShareGrid()}`;
       }
       document.body.removeChild(textArea);
     }
-  }, [wordIndex, mode, attempts, failAnswer, generateShareGrid]);
+  }, [wordIndex, mode, attempts, failAnswer, generateShareGrid, wordLength]);
 
   function getMeaningForKey(json, searchKey) {
     const items = json.filter((item) => item.key === searchKey);
@@ -140,7 +146,9 @@ ${generateShareGrid()}`;
     });
   }
 
-  const meaning = getMeaningForKey(dictionary, answer);
+  // 根据模式选择词典
+  const currentDictionary = wordLength === 6 ? dictionary6 : dictionary;
+  const meaning = getMeaningForKey(currentDictionary, answer);
 
   if (!isVisible) return null;
 
@@ -170,10 +178,10 @@ ${generateShareGrid()}`;
   // 渲染结果方块预览
   const renderResultGrid = () => {
     const rows = [];
-    for (let i = 0; i < colorList.length; i += 5) {
-      const row = colorList.slice(i, i + 5);
+    for (let i = 0; i < colorList.length; i += wordLength) {
+      const row = colorList.slice(i, i + wordLength);
       rows.push(
-        <div key={i} className="result-row">
+        <div key={i} className={`result-row ${wordLength === 6 ? 'result-row--6' : ''}`}>
           {row.map((color, idx) => (
             <span 
               key={idx} 
@@ -188,10 +196,11 @@ ${generateShareGrid()}`;
 
   // 获取难度显示名称
   const getModeLabel = () => {
+    const suffix = wordLength === 6 ? ' (6字)' : '';
     switch(mode) {
       case 'easy': return lang.lv1;
-      case 'imdt': return lang.lv2;
-      case 'hard': return lang.lv3;
+      case 'imdt': return lang.lv2 + suffix;
+      case 'hard': return lang.lv3 + suffix;
       default: return mode;
     }
   };

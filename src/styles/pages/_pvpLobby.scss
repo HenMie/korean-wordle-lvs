@@ -249,7 +249,8 @@
   }
 
   &__difficulty,
-  &__time-select {
+  &__time-select,
+  &__word-length-select {
     display: flex;
     gap: var(--space-2);
     background: var(--color-bg-primary);
@@ -259,7 +260,8 @@
   }
 
   &__diff-btn,
-  &__time-btn {
+  &__time-btn,
+  &__word-len-btn {
     flex: 1;
     padding: var(--space-2) var(--space-2);
     font-family: var(--font-sans);
@@ -299,6 +301,24 @@
     small {
       font-size: var(--text-xs);
       opacity: 0.7;
+    }
+  }
+
+  &__word-len-btn {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1);
+    
+    span {
+      font-size: var(--text-lg);
+      font-weight: var(--font-bold);
+    }
+    
+    small {
+      font-size: var(--text-sm);
+      opacity: 0.8;
     }
   }
   
@@ -448,13 +468,15 @@
     }
     
     &__difficulty,
-    &__time-select {
+    &__time-select,
+    &__word-length-select {
       background: var(--color-dark-bg-secondary);
       border-color: var(--color-dark-border-light);
     }
     
     &__diff-btn,
-    &__time-btn {
+    &__time-btn,
+    &__word-len-btn {
       color: var(--color-dark-text-secondary);
       
       &:hover {

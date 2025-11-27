@@ -239,6 +239,39 @@
   }
 
   // ─────────────────────────────────────────────────────────────────────────
+  // 6字模式入口区域
+  // ─────────────────────────────────────────────────────────────────────────
+  &__six-letter-section {
+    margin-top: var(--space-6);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--color-border-light);
+    width: 100%;
+    max-width: 280px;
+    
+    animation: fade-in-up var(--duration-normal) var(--ease-out);
+    animation-delay: 280ms;
+    animation-fill-mode: both;
+  }
+  
+  // 6字模式按钮组 - 水平布局
+  &__buttons--6 {
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-3);
+  }
+
+  // 6字模式按钮样式
+  &__button--imdt6 {
+    color: var(--color-present);
+    flex: 1;
+  }
+  
+  &__button--hard6 {
+    color: #dc2626;
+    flex: 1;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
   // PVP 入口区域
   // ─────────────────────────────────────────────────────────────────────────
   &__pvp-section {
@@ -249,7 +282,7 @@
     max-width: 280px;
     
     animation: fade-in-up var(--duration-normal) var(--ease-out);
-    animation-delay: 320ms;
+    animation-delay: 360ms;
     animation-fill-mode: both;
   }
 

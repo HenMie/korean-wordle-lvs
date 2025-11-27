@@ -102,7 +102,7 @@ export function SocketProvider({ children }) {
   }, []);
 
   // 创建房间
-  const createRoom = useCallback((playerName, difficulty, gameMode = 'race', timeLimit = null) => {
+  const createRoom = useCallback((playerName, difficulty, gameMode = 'race', timeLimit = null, wordLength = 5) => {
     return new Promise((resolve, reject) => {
       if (!socketRef.current?.connected) {
         reject(new Error('Not connected'));
@@ -113,7 +113,8 @@ export function SocketProvider({ children }) {
         playerName, 
         difficulty, 
         gameMode,
-        timeLimit: gameMode === 'timed' ? timeLimit : null
+        timeLimit: gameMode === 'timed' ? timeLimit : null,
+        wordLength
       }, (response) => {
         if (response.success) {
           setRoom(response.room);

@@ -11,7 +11,8 @@ import {
   faSpinner,
   faGamepad,
   faBolt,
-  faClock
+  faClock,
+  faFont
 } from '@fortawesome/free-solid-svg-icons';
 
 import Header from '@components/Header';
@@ -31,6 +32,7 @@ function PvpLobby() {
   const [playerName, setPlayerName] = useState('');
   const [roomCode, setRoomCode] = useState('');
   const [difficulty, setDifficulty] = useState('easy');
+  const [wordLength, setWordLength] = useState(5); // 5字 或 6字模式
   const [gameMode, setGameMode] = useState('race'); // race: 竞速, timed: 限时
   const [timeLimit, setTimeLimit] = useState(3); // 限时模式: 3, 5, 10 分钟
   const [loading, setLoading] = useState(false);
@@ -89,14 +91,20 @@ function PvpLobby() {
 
     try {
       localStorage.setItem('pvp_player_name', playerName.trim());
-      const response = await createRoom(playerName.trim(), difficulty, gameMode, gameMode === 'timed' ? timeLimit : null);
+      const response = await createRoom(
+        playerName.trim(), 
+        difficulty, 
+        gameMode, 
+        gameMode === 'timed' ? timeLimit : null,
+        wordLength
+      );
       navigate(`/pvp/room/${response.roomCode}`);
     } catch (err) {
       setLocalError(getErrorMessage(err.message));
     } finally {
       setLoading(false);
     }
-  }, [playerName, difficulty, gameMode, timeLimit, createRoom, navigate, lang]);
+  }, [playerName, difficulty, gameMode, timeLimit, wordLength, createRoom, navigate, lang, getErrorMessage]);
 
   // 加入房间
   const handleJoinRoom = useCallback(async () => {
@@ -121,7 +129,7 @@ function PvpLobby() {
     } finally {
       setLoading(false);
     }
-  }, [playerName, roomCode, joinRoom, navigate, lang]);
+  }, [playerName, roomCode, joinRoom, navigate, lang, getErrorMessage]);
 
   return (
     <div className="pvp-lobby">
@@ -229,16 +237,51 @@ function PvpLobby() {
               </div>
             )}
 
+            {/* 字数选择 */}
+            <div className="pvp-lobby__field">
+              <label>
+                <FontAwesomeIcon icon={faFont} style={{ marginRight: '6px' }} />
+                {lang.pvp?.word_length || '字数'}
+              </label>
+              <div className="pvp-lobby__word-length-select">
+                <button 
+                  className={`pvp-lobby__word-len-btn ${wordLength === 5 ? 'active' : ''}`}
+                  onClick={() => {
+                    setWordLength(5);
+                  }}
+                >
+                  <span>5</span>
+                  <small>{lang.pvp?.letters || '字'}</small>
+                </button>
+                <button 
+                  className={`pvp-lobby__word-len-btn ${wordLength === 6 ? 'active' : ''}`}
+                  onClick={() => {
+                    setWordLength(6);
+                    // 6字模式没有初级难度，自动调整
+                    if (difficulty === 'easy') {
+                      setDifficulty('imdt');
+                    }
+                  }}
+                >
+                  <span>6</span>
+                  <small>{lang.pvp?.letters || '字'}</small>
+                </button>
+              </div>
+            </div>
+
             {/* 难度选择 */}
             <div className="pvp-lobby__field">
               <label>{lang.pvp?.difficulty || '难度'}</label>
               <div className="pvp-lobby__difficulty">
-                <button 
-                  className={`pvp-lobby__diff-btn ${difficulty === 'easy' ? 'active' : ''}`}
-                  onClick={() => setDifficulty('easy')}
-                >
-                  {lang.lv1 || '初级'}
-                </button>
+                {/* 5字模式才显示初级 */}
+                {wordLength === 5 && (
+                  <button 
+                    className={`pvp-lobby__diff-btn ${difficulty === 'easy' ? 'active' : ''}`}
+                    onClick={() => setDifficulty('easy')}
+                  >
+                    {lang.lv1 || '初级'}
+                  </button>
+                )}
                 <button 
                   className={`pvp-lobby__diff-btn ${difficulty === 'imdt' ? 'active' : ''}`}
                   onClick={() => setDifficulty('imdt')}

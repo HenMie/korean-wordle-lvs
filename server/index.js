@@ -47,10 +47,11 @@ function selectRandomWord(difficulty, wordList) {
 
 // 房间类
 class Room {
-  constructor(hostId, hostName, difficulty, gameMode = 'race', timeLimit = null) {
+  constructor(hostId, hostName, difficulty, gameMode = 'race', timeLimit = null, wordLength = 5) {
     this.code = generateRoomCode();
     this.hostId = hostId;
     this.difficulty = difficulty;
+    this.wordLength = wordLength; // 5字或6字模式
     this.maxPlayers = 4; // 固定为4人
     this.gameMode = gameMode; // 'race' 竞速模式, 'timed' 限时模式
     this.timeLimit = timeLimit; // 限时模式的时间限制（分钟）
@@ -308,6 +309,7 @@ class Room {
       code: this.code,
       hostId: this.hostId,
       difficulty: this.difficulty,
+      wordLength: this.wordLength,
       maxPlayers: this.maxPlayers,
       gameMode: this.gameMode,
       timeLimit: this.timeLimit,
@@ -336,15 +338,15 @@ io.on('connection', (socket) => {
   console.log(`Player connected: ${socket.id}`);
   
   // 创建房间
-  socket.on('create_room', ({ playerName, difficulty, gameMode, timeLimit }, callback) => {
-    const room = new Room(socket.id, playerName, difficulty, gameMode || 'race', timeLimit);
+  socket.on('create_room', ({ playerName, difficulty, gameMode, timeLimit, wordLength }, callback) => {
+    const room = new Room(socket.id, playerName, difficulty, gameMode || 'race', timeLimit, wordLength || 5);
     room.addPlayer(socket.id, playerName);
     rooms.set(room.code, room);
     
     socket.join(room.code);
     socket.roomCode = room.code;
     
-    console.log(`Room created: ${room.code} by ${playerName} (mode: ${gameMode}, timeLimit: ${timeLimit})`);
+    console.log(`Room created: ${room.code} by ${playerName} (mode: ${gameMode}, timeLimit: ${timeLimit}, wordLength: ${wordLength})`);
     
     callback({
       success: true,
@@ -400,7 +402,7 @@ io.on('connection', (socket) => {
   });
 
   // 房主修改房间设置
-  socket.on('update_room_settings', ({ difficulty, gameMode, timeLimit }, callback) => {
+  socket.on('update_room_settings', ({ difficulty, wordLength, gameMode, timeLimit }, callback) => {
     const room = rooms.get(socket.roomCode);
     if (!room) {
       return callback({ success: false, error: 'room_not_found' });
@@ -418,6 +420,7 @@ io.on('connection', (socket) => {
     
     // 更新设置
     if (difficulty) room.difficulty = difficulty;
+    if (wordLength) room.wordLength = wordLength;
     if (gameMode) {
       room.gameMode = gameMode;
       room.timeLimit = gameMode === 'timed' ? (timeLimit || 3) : null;
@@ -433,7 +436,7 @@ io.on('connection', (socket) => {
       }
     }
     
-    console.log(`Room ${room.code} settings updated: difficulty=${room.difficulty}, gameMode=${room.gameMode}, timeLimit=${room.timeLimit}`);
+    console.log(`Room ${room.code} settings updated: difficulty=${room.difficulty}, wordLength=${room.wordLength}, gameMode=${room.gameMode}, timeLimit=${room.timeLimit}`);
     
     // 通知所有玩家设置已更新
     io.to(socket.roomCode).emit('room_settings_updated', {
@@ -656,6 +659,7 @@ app.get('/room/:code', (req, res) => {
   res.json({
     code: room.code,
     difficulty: room.difficulty,
+    wordLength: room.wordLength,
     gameMode: room.gameMode,
     timeLimit: room.timeLimit,
     playerCount: room.players.size,

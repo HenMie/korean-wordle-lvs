@@ -5,6 +5,11 @@ export const el = {
   lv1: "Εύκολο",
   lv2: "Μέτριο",
   lv3: "Δύσκολο",
+  mode6: {
+    title: "6 γράμματα",
+    imdt: "Μέτριο",
+    hard: "Δύσκολο",
+  },
   submit: "Υποβολή",
   setting: "Ρυθμίσεις",
   settings: {
