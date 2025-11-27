@@ -55,12 +55,12 @@ jobs:
             
             ### 🐳 Docker
             ```bash
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/korean-wordle:${{ steps.get_version.outputs.VERSION }}
+            docker pull chouann/korean-wordle:${{ steps.get_version.outputs.VERSION }}
             ```
             
             ### 📦 Quick Start
             ```bash
-            docker run -d -p 3000:80 ${{ secrets.DOCKERHUB_USERNAME }}/korean-wordle:${{ steps.get_version.outputs.VERSION }}
+            docker run -d -p 3000:80 chouann/korean-wordle:${{ steps.get_version.outputs.VERSION }}
             ```
           draft: false
           prerelease: false

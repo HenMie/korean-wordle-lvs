@@ -61,6 +61,9 @@ copy env.example .env
 Edit `.env` file to customize:
 
 ```ini
+# Image tag (options: latest, main, or specific version like 1.2.0)
+IMAGE_TAG=latest
+
 # Container name
 CONTAINER_NAME=korean-wordle
 
@@ -74,17 +77,20 @@ TZ=Asia/Shanghai
 NETWORK_NAME=korean-wordle-network
 ```
 
-3. **Build and run**
+3. **Run container**
 
 ```bash
-# Build and start container
-docker-compose up -d --build
+# Pull and start container
+docker-compose up -d
 
 # View logs
 docker-compose logs -f
 
 # Stop container
 docker-compose down
+
+# Update to latest image
+docker-compose pull && docker-compose up -d
 ```
 
 4. **Access the application**
@@ -93,11 +99,17 @@ Open your browser and visit: `http://localhost:3000` (or your configured port)
 
 ### Pull from Docker Hub
 
-You can also pull the pre-built image directly:
+Docker Hub: https://hub.docker.com/r/chouann/korean-wordle
 
 ```bash
-docker pull YOUR_USERNAME/korean-wordle:latest
-docker run -d -p 3000:80 YOUR_USERNAME/korean-wordle:latest
+# Pull latest image
+docker pull chouann/korean-wordle:latest
+
+# Run directly
+docker run -d -p 3000:80 chouann/korean-wordle:latest
+
+# Or use specific version
+docker pull chouann/korean-wordle:1.2.0
 ```
 
 ### CI/CD Auto Build
