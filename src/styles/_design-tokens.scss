@@ -220,6 +220,11 @@ $breakpoint-xl: 1280px;
   --key-width-mobile: 40px;
   --key-gap: 7px;
   
+  // 键盘区域最大宽度
+  --keyboard-max-width-desktop: 640px;
+  --keyboard-max-width-tablet: 560px;
+  --keyboard-max-width-mobile: 500px;
+  
   // 翻转动画延迟步进
   --flip-delay-step: 150ms;
 }

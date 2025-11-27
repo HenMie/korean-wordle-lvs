@@ -91,6 +91,34 @@ docker-compose down
 
 Open your browser and visit: `http://localhost:3000` (or your configured port)
 
+### Pull from Docker Hub
+
+You can also pull the pre-built image directly:
+
+```bash
+docker pull YOUR_USERNAME/korean-wordle:latest
+docker run -d -p 3000:80 YOUR_USERNAME/korean-wordle:latest
+```
+
+### CI/CD Auto Build
+
+This project uses GitHub Actions to automatically build and push Docker images to Docker Hub.
+
+**Triggers:**
+| Event | Image Tags |
+|-------|------------|
+| Push to main/master | `latest`, `main` |
+| Create tag `v1.2.0` | `1.2.0`, `1.2`, `latest` |
+| Pull Request | Build only, no push |
+| Manual trigger | Based on branch |
+
+**Setup (for fork):**
+1. Create a repository on [Docker Hub](https://hub.docker.com/)
+2. Go to GitHub repo **Settings** → **Secrets and variables** → **Actions**
+3. Add secrets:
+   - `DOCKERHUB_USERNAME`: Your Docker Hub username
+   - `DOCKERHUB_TOKEN`: Docker Hub Access Token (generate in Docker Hub Account Settings → Security)
+
 ## Project Structure
 
 ```
