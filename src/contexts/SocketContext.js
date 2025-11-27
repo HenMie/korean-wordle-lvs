@@ -6,8 +6,10 @@ import { io } from 'socket.io-client';
 
 const SocketContext = createContext(null);
 
-// 服务器地址 - 可以通过环境变量配置
-const SOCKET_SERVER_URL = process.env.REACT_APP_SOCKET_SERVER || 'http://localhost:3001';
+// 服务器地址配置
+// - 开发环境：设置 REACT_APP_SOCKET_SERVER=http://localhost:3001
+// - 生产环境（Docker）：不设置，使用同域连接（通过 nginx 反向代理）
+const SOCKET_SERVER_URL = process.env.REACT_APP_SOCKET_SERVER || undefined;
 
 export function SocketProvider({ children }) {
   const [socket, setSocket] = useState(null);

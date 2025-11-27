@@ -1,10 +1,7 @@
 # ==========================================
-# Stage 1: Build
+# Stage 1: Build Frontend
 # ==========================================
-FROM node:18-alpine AS builder
-
-ARG REACT_APP_SOCKET_SERVER=http://localhost:3001
-ENV REACT_APP_SOCKET_SERVER=${REACT_APP_SOCKET_SERVER}
+FROM node:18-alpine AS frontend-builder
 
 WORKDIR /app
 
@@ -17,23 +14,56 @@ RUN npm ci --legacy-peer-deps
 # 复制源代码
 COPY . .
 
-# 构建生产版本
+# 构建生产版本（WebSocket 使用相对路径，通过 nginx 代理）
 RUN npm run build
 
 # ==========================================
-# Stage 2: Production
+# Stage 2: Build Backend Dependencies
 # ==========================================
-FROM nginx:alpine AS production
+FROM node:20-alpine AS backend-builder
 
-# 复制自定义 nginx 配置
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+WORKDIR /app/server
 
-# 从构建阶段复制构建产物
-COPY --from=builder /app/build /usr/share/nginx/html
+# 复制 server 目录的 package 文件
+COPY server/package*.json ./
 
-# 暴露端口（实际端口由 docker-compose 映射）
+# 安装生产依赖
+RUN npm ci --only=production
+
+# ==========================================
+# Stage 3: Production
+# ==========================================
+FROM node:20-alpine AS production
+
+# 安装 nginx 和 supervisor
+RUN apk add --no-cache nginx supervisor
+
+# 创建必要的目录
+RUN mkdir -p /var/log/supervisor /run/nginx /var/log/nginx
+
+# 复制 nginx 配置（覆盖默认配置）
+COPY nginx.conf /etc/nginx/http.d/default.conf
+
+# 确保 nginx 主配置包含 http.d 目录
+RUN sed -i 's|include /etc/nginx/http.d/\*.conf;|include /etc/nginx/http.d/*.conf;|g' /etc/nginx/nginx.conf || true
+
+# 复制前端构建产物
+COPY --from=frontend-builder /app/build /usr/share/nginx/html
+
+# 复制后端代码和依赖
+WORKDIR /app/server
+COPY server/ ./
+COPY --from=backend-builder /app/server/node_modules ./node_modules
+
+# 复制 supervisord 配置
+COPY supervisord.conf /etc/supervisord.conf
+
+# 暴露端口（只需要 80）
 EXPOSE 80
 
-# 启动 nginx
-CMD ["nginx", "-g", "daemon off;"]
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=10s \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:80 || exit 1
 
+# 启动 supervisord 管理 nginx 和 node
+CMD ["supervisord", "-c", "/etc/supervisord.conf"]

@@ -80,28 +80,16 @@ TZ=Asia/Shanghai
 
 # Docker 网络名称
 NETWORK_NAME=korean-wordle-network
-
-# PVP WebSocket 端点（暴露给浏览器）
-REACT_APP_SOCKET_SERVER=http://localhost:3001
-
-# PVP 服务器端口（主机/容器）
-PVP_SERVER_PORT=3001
-
-# WebSocket 服务器允许的源（逗号分隔）
-PVP_CLIENT_URL=http://localhost:3000
 ```
 
-3. **运行容器（前端 + PVP 后端一键部署）**
+3. **运行容器**
 
 ```bash
-# 构建镜像（前端 + WebSocket）并启动容器
+# 构建镜像并启动容器（前端 + PVP 后端集成在单个容器中）
 docker-compose up -d --build
 
-# 查看前端日志
+# 查看日志
 docker-compose logs -f korean-wordle
-
-# 查看 PVP 服务器日志
-docker-compose logs -f pvp-server
 
 # 停止容器
 docker-compose down
@@ -119,35 +107,25 @@ Docker Hub：https://hub.docker.com/r/chouann/korean-wordle
 # 拉取最新镜像
 docker pull chouann/korean-wordle:latest
 
-# 直接运行
+# 直接运行（前端 + PVP 后端集成在单个容器中）
 docker run -d -p 3000:80 chouann/korean-wordle:latest
 
 # 或使用特定版本
 docker pull chouann/korean-wordle:1.2.0
 ```
 
-> **注意：** 上面的独立 `docker run` 命令仅启动前端。如果需要启用 PVP 对战模式，请优先使用本仓库提供的 `docker-compose up -d --build`，它会自动启动 WebSocket 后端服务。
+> **架构说明：** 镜像已集成前端静态文件服务（Nginx）和 PVP WebSocket 服务器（Node.js），通过 supervisord 管理多进程，只需暴露一个端口即可使用完整功能。
 
-### 自定义域名部署（HTTPS + 同域 WebSocket）
+### 自定义域名部署（HTTPS）
 
 如果你要把整套服务部署在自己的域名（例如 `https://koreanwordle.ningriri.cn/`），可以参考以下流程：
 
-1. **编辑 `.env`**（在部署主机上）
-   ```ini
-   HOST_PORT=3000
-   REACT_APP_SOCKET_SERVER=https://koreanwordle.ningriri.cn/socket.io
-   PVP_SERVER_PORT=3001
-   PVP_CLIENT_URL=https://koreanwordle.ningriri.cn
-   ```
-   - `REACT_APP_SOCKET_SERVER` 必须写公网的 HTTPS 地址，这样前端打包后会连到同域的 `/socket.io`。
-   - `PVP_CLIENT_URL` 为 WebSocket 服务允许的跨域来源，可用逗号追加多个域名或调试地址。
-
-2. **一键构建并启动**
+1. **启动容器**
    ```bash
    docker-compose up -d --build
    ```
 
-3. **配置外层反向代理**（以 Nginx 为例，假设证书已就绪）
+2. **配置外层反向代理**（以 Nginx 为例，假设证书已就绪）
    ```nginx
    server {
        listen 80;
@@ -161,25 +139,23 @@ docker pull chouann/korean-wordle:1.2.0
        ssl_certificate     /path/fullchain.pem;
        ssl_certificate_key /path/privkey.pem;
 
-       # 前端静态资源
+       # 所有请求代理到容器（容器内 Nginx 会处理静态文件和 WebSocket 路由）
        location / {
            proxy_pass http://127.0.0.1:3000;
-           proxy_set_header Host $host;
-           proxy_set_header X-Real-IP $remote_addr;
-       }
-
-       # WebSocket (Socket.IO 默认路径 /socket.io)
-       location /socket.io/ {
-           proxy_pass http://127.0.0.1:3001;
            proxy_http_version 1.1;
            proxy_set_header Upgrade $http_upgrade;
            proxy_set_header Connection "upgrade";
            proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Proto $scheme;
        }
    }
    ```
 
-完成后访问 `https://koreanwordle.ningriri.cn/` 即可在同一域名下正常使用 PVP 对战模式（前端页面与 WebSocket 均经过 HTTPS）。
+完成后访问 `https://koreanwordle.ningriri.cn/` 即可使用完整功能（前端页面与 WebSocket 均经过 HTTPS）。
+
+> **注意：** 由于前端和 WebSocket 已集成在同一容器中，外层反向代理只需配置一个 location 即可，容器内部 Nginx 会自动将 `/socket.io` 请求路由到 Node.js 服务。
 
 ### CI/CD 自动构建
 
@@ -248,11 +224,14 @@ npm start
 ```
 
 ### PVP 环境变量
-| 变量 | 描述 | 默认值 |
-|------|------|--------|
-| `REACT_APP_SOCKET_SERVER` | 前端构建时的 WebSocket 端点 | `http://localhost:3001` |
-| `PVP_SERVER_PORT` | WebSocket 服务器端口 | `3001` |
-| `PVP_CLIENT_URL` | WebSocket 服务器允许的 CORS 源（逗号分隔） | `*` |
+
+**本地开发时**，需要在项目根目录创建 `.env.local` 文件：
+
+```ini
+REACT_APP_SOCKET_SERVER=http://localhost:3001
+```
+
+**Docker 部署时**，无需配置任何 PVP 相关环境变量，前端会自动通过同域 `/socket.io` 路径连接 WebSocket 服务。
 
 ## 项目结构
 

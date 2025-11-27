@@ -4,8 +4,6 @@ services:
   korean-wordle:
     build:
       context: .
-      args:
-        REACT_APP_SOCKET_SERVER: ${REACT_APP_SOCKET_SERVER:-http://localhost:3001}
     image: chouann/korean-wordle:${IMAGE_TAG:-latest}
     container_name: ${CONTAINER_NAME:-korean-wordle}
     restart: unless-stopped
@@ -21,32 +19,7 @@ services:
       start_period: 10s
     labels:
       - "app.name=korean-wordle"
-    depends_on:
-      - pvp-server
-
-  # PVP WebSocket 服务器
-  pvp-server:
-    build:
-      context: ./server
-      dockerfile: Dockerfile
-    container_name: ${CONTAINER_NAME:-korean-wordle}-pvp
-    restart: unless-stopped
-    ports:
-      - "${PVP_SERVER_PORT:-3001}:3001"
-    environment:
-      - TZ=${TZ:-Asia/Shanghai}
-      - PORT=3001
-      - CLIENT_URL=${PVP_CLIENT_URL:-*}
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 5s
-    labels:
-      - "app.name=korean-wordle-pvp"
 
 networks:
   default:
     name: ${NETWORK_NAME:-korean-wordle-network}
-
