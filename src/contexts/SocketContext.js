@@ -61,6 +61,10 @@ export function SocketProvider({ children }) {
       setRoom(roomData);
     });
 
+    newSocket.on('room_settings_updated', ({ room: roomData }) => {
+      setRoom(roomData);
+    });
+
     newSocket.on('room_expired', () => {
       setRoom(null);
       setError('room_expired');
@@ -96,14 +100,19 @@ export function SocketProvider({ children }) {
   }, []);
 
   // 创建房间
-  const createRoom = useCallback((playerName, difficulty, maxPlayers = 4) => {
+  const createRoom = useCallback((playerName, difficulty, gameMode = 'race', timeLimit = null) => {
     return new Promise((resolve, reject) => {
       if (!socketRef.current?.connected) {
         reject(new Error('Not connected'));
         return;
       }
 
-      socketRef.current.emit('create_room', { playerName, difficulty, maxPlayers }, (response) => {
+      socketRef.current.emit('create_room', { 
+        playerName, 
+        difficulty, 
+        gameMode,
+        timeLimit: gameMode === 'timed' ? timeLimit : null
+      }, (response) => {
         if (response.success) {
           setRoom(response.room);
           resolve(response);
@@ -151,6 +160,24 @@ export function SocketProvider({ children }) {
     });
   }, []);
 
+  // 更新房间设置（仅房主）
+  const updateRoomSettings = useCallback((settings) => {
+    return new Promise((resolve, reject) => {
+      if (!socketRef.current?.connected) {
+        reject(new Error('Not connected'));
+        return;
+      }
+
+      socketRef.current.emit('update_room_settings', settings, (response) => {
+        if (response.success) {
+          resolve(response);
+        } else {
+          reject(new Error(response.error));
+        }
+      });
+    });
+  }, []);
+
   // 开始游戏
   const startGame = useCallback((wordList) => {
     return new Promise((resolve, reject) => {
@@ -170,9 +197,9 @@ export function SocketProvider({ children }) {
   }, []);
 
   // 更新进度
-  const updateProgress = useCallback((progress, won) => {
+  const updateProgress = useCallback((progress, won, correctCount = 0) => {
     if (!socketRef.current?.connected) return;
-    socketRef.current.emit('update_progress', { progress, won });
+    socketRef.current.emit('update_progress', { progress, won, correctCount });
   }, []);
 
   // 再来一局
@@ -225,6 +252,7 @@ export function SocketProvider({ children }) {
     createRoom,
     joinRoom,
     setReady,
+    updateRoomSettings,
     startGame,
     updateProgress,
     playAgain,

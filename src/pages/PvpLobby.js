@@ -6,12 +6,12 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  faUsers, 
   faPlus, 
   faSignInAlt, 
-  faArrowLeft,
   faSpinner,
-  faGamepad
+  faGamepad,
+  faBolt,
+  faClock
 } from '@fortawesome/free-solid-svg-icons';
 
 import Header from '@components/Header';
@@ -30,8 +30,9 @@ function PvpLobby() {
   const [mode, setMode] = useState('menu'); // menu, create, join
   const [playerName, setPlayerName] = useState('');
   const [roomCode, setRoomCode] = useState('');
-  const [difficulty, setDifficulty] = useState('imdt');
-  const [maxPlayers, setMaxPlayers] = useState(4);
+  const [difficulty, setDifficulty] = useState('easy');
+  const [gameMode, setGameMode] = useState('race'); // race: 竞速, timed: 限时
+  const [timeLimit, setTimeLimit] = useState(3); // 限时模式: 3, 5, 10 分钟
   const [loading, setLoading] = useState(false);
   const [localError, setLocalError] = useState('');
 
@@ -57,15 +58,7 @@ function PvpLobby() {
     }
   }, []);
 
-  // 清除错误
-  useEffect(() => {
-    if (error) {
-      setLocalError(getErrorMessage(error));
-      clearError();
-    }
-  }, [error, clearError]);
-
-  const getErrorMessage = (errorCode) => {
+  const getErrorMessage = useCallback((errorCode) => {
     const messages = {
       connection_failed: lang.pvp?.errors?.connection_failed || '连接服务器失败，请稍后重试',
       room_not_found: lang.pvp?.errors?.room_not_found || '房间不存在或已关闭',
@@ -74,7 +67,15 @@ function PvpLobby() {
       room_expired: lang.pvp?.errors?.room_expired || '房间已过期',
     };
     return messages[errorCode] || lang.pvp?.errors?.unknown || '发生未知错误';
-  };
+  }, [lang]);
+
+  // 清除错误
+  useEffect(() => {
+    if (error) {
+      setLocalError(getErrorMessage(error));
+      clearError();
+    }
+  }, [error, clearError, getErrorMessage]);
 
   // 创建房间
   const handleCreateRoom = useCallback(async () => {
@@ -88,14 +89,14 @@ function PvpLobby() {
 
     try {
       localStorage.setItem('pvp_player_name', playerName.trim());
-      const response = await createRoom(playerName.trim(), difficulty, maxPlayers);
+      const response = await createRoom(playerName.trim(), difficulty, gameMode, gameMode === 'timed' ? timeLimit : null);
       navigate(`/pvp/room/${response.roomCode}`);
     } catch (err) {
       setLocalError(getErrorMessage(err.message));
     } finally {
       setLoading(false);
     }
-  }, [playerName, difficulty, maxPlayers, createRoom, navigate, lang]);
+  }, [playerName, difficulty, gameMode, timeLimit, createRoom, navigate, lang]);
 
   // 加入房间
   const handleJoinRoom = useCallback(async () => {
@@ -122,15 +123,6 @@ function PvpLobby() {
     }
   }, [playerName, roomCode, joinRoom, navigate, lang]);
 
-  const goBack = () => {
-    if (mode === 'menu') {
-      navigate('/');
-    } else {
-      setMode('menu');
-      setLocalError('');
-    }
-  };
-
   return (
     <div className="pvp-lobby">
       <Helmet>
@@ -139,12 +131,6 @@ function PvpLobby() {
       <Header />
 
       <div className="pvp-lobby__content">
-        {/* 返回按钮 */}
-        <button className="pvp-lobby__back" onClick={goBack}>
-          <FontAwesomeIcon icon={faArrowLeft} />
-          <span>{lang.button?.back || '返回'}</span>
-        </button>
-
         {/* 连接状态 */}
         {!connected && (
           <div className="pvp-lobby__connecting">
@@ -201,6 +187,48 @@ function PvpLobby() {
               />
             </div>
 
+            {/* 游戏模式选择 */}
+            <div className="pvp-lobby__field">
+              <label>{lang.pvp?.game_mode || '游戏模式'}</label>
+              <div className="pvp-lobby__mode-select">
+                <button 
+                  className={`pvp-lobby__mode-btn ${gameMode === 'race' ? 'active' : ''}`}
+                  onClick={() => setGameMode('race')}
+                >
+                  <FontAwesomeIcon icon={faBolt} />
+                  <span>{lang.pvp?.mode_race || '竞速模式'}</span>
+                  <small>{lang.pvp?.mode_race_desc || '先猜出者获胜'}</small>
+                </button>
+                <button 
+                  className={`pvp-lobby__mode-btn ${gameMode === 'timed' ? 'active' : ''}`}
+                  onClick={() => setGameMode('timed')}
+                >
+                  <FontAwesomeIcon icon={faClock} />
+                  <span>{lang.pvp?.mode_timed || '限时模式'}</span>
+                  <small>{lang.pvp?.mode_timed_desc || '猜更多题目获胜'}</small>
+                </button>
+              </div>
+            </div>
+
+            {/* 限时模式 - 时间选择 */}
+            {gameMode === 'timed' && (
+              <div className="pvp-lobby__field">
+                <label>{lang.pvp?.time_limit || '时间限制'}</label>
+                <div className="pvp-lobby__time-select">
+                  {[3, 5, 10].map(min => (
+                    <button 
+                      key={min}
+                      className={`pvp-lobby__time-btn ${timeLimit === min ? 'active' : ''}`}
+                      onClick={() => setTimeLimit(min)}
+                    >
+                      <span>{min}</span>
+                      <small>{lang.pvp?.minutes || '分钟'}</small>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* 难度选择 */}
             <div className="pvp-lobby__field">
               <label>{lang.pvp?.difficulty || '难度'}</label>
@@ -223,23 +251,6 @@ function PvpLobby() {
                 >
                   {lang.lv3 || '高级'}
                 </button>
-              </div>
-            </div>
-
-            {/* 人数选择 */}
-            <div className="pvp-lobby__field">
-              <label>{lang.pvp?.max_players || '最大人数'}</label>
-              <div className="pvp-lobby__players">
-                {[2, 3, 4].map(num => (
-                  <button 
-                    key={num}
-                    className={`pvp-lobby__player-btn ${maxPlayers === num ? 'active' : ''}`}
-                    onClick={() => setMaxPlayers(num)}
-                  >
-                    <FontAwesomeIcon icon={faUsers} />
-                    <span>{num}</span>
-                  </button>
-                ))}
               </div>
             </div>
 

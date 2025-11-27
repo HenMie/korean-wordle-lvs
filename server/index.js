@@ -47,16 +47,22 @@ function selectRandomWord(difficulty, wordList) {
 
 // 房间类
 class Room {
-  constructor(hostId, hostName, difficulty, maxPlayers = 4) {
+  constructor(hostId, hostName, difficulty, gameMode = 'race', timeLimit = null) {
     this.code = generateRoomCode();
     this.hostId = hostId;
     this.difficulty = difficulty;
-    this.maxPlayers = maxPlayers;
+    this.maxPlayers = 4; // 固定为4人
+    this.gameMode = gameMode; // 'race' 竞速模式, 'timed' 限时模式
+    this.timeLimit = timeLimit; // 限时模式的时间限制（分钟）
     this.players = new Map();
     this.status = 'waiting'; // waiting, playing, finished
     this.wordIndex = null;
     this.word = null;
+    this.wordList = null; // 限时模式需要存储题目列表
+    this.currentWordIndex = 0; // 限时模式当前题目索引
     this.startTime = null;
+    this.endTime = null; // 限时模式的结束时间
+    this.gameTimer = null; // 限时模式的计时器
     this.results = [];
     this.createdAt = Date.now();
   }
@@ -75,6 +81,9 @@ class Room {
       isHost: playerId === this.hostId,
       ready: playerId === this.hostId, // 房主默认准备
       progress: 0, // 当前尝试次数
+      correctCount: 0, // 正确字母数（竞速模式排名用）
+      solvedCount: 0, // 答对题目数（限时模式）
+      currentWordIndex: 0, // 当前题目索引（限时模式）
       finished: false,
       finishTime: null,
       won: false
@@ -115,56 +124,183 @@ class Room {
     return true;
   }
 
-  startGame(wordIndex, word) {
+  startGame(wordIndex, word, wordList = null) {
     this.status = 'playing';
     this.wordIndex = wordIndex;
     this.word = word;
+    this.wordList = wordList; // 限时模式存储完整题目列表
+    this.currentWordIndex = 0;
     this.startTime = Date.now();
     this.results = [];
+    
+    // 限时模式设置结束时间
+    if (this.gameMode === 'timed' && this.timeLimit) {
+      this.endTime = this.startTime + this.timeLimit * 60 * 1000;
+    }
     
     // 重置所有玩家状态
     for (const player of this.players.values()) {
       player.progress = 0;
+      player.correctCount = 0;
+      player.solvedCount = 0;
+      player.currentWordIndex = 0;
       player.finished = false;
       player.finishTime = null;
       player.won = false;
     }
   }
 
-  updatePlayerProgress(playerId, progress, won) {
+  updatePlayerProgress(playerId, progress, won, correctCount = 0) {
     const player = this.players.get(playerId);
-    if (player && !player.finished) {
-      player.progress = progress;
+    if (!player) return { allFinished: false, results: this.results };
+    
+    // 竞速模式逻辑
+    if (this.gameMode === 'race') {
+      if (player.finished) return { allFinished: false, results: this.results };
       
-      if (won || progress >= 6) {
+      player.progress = progress;
+      player.correctCount = correctCount;
+      
+      if (won) {
+        // 有人猜对了，游戏结束
         player.finished = true;
         player.finishTime = Date.now() - this.startTime;
-        player.won = won;
+        player.won = true;
         
-        this.results.push({
-          playerId: player.id,
-          playerName: player.name,
-          attempts: progress,
-          time: player.finishTime,
-          won: won
-        });
+        // 标记所有其他玩家为已完成
+        for (const p of this.players.values()) {
+          if (!p.finished) {
+            p.finished = true;
+            p.finishTime = Date.now() - this.startTime;
+            p.won = false;
+          }
+        }
+        
+        this.finishGame();
+        return { allFinished: true, results: this.results, winner: player };
+      } else if (progress >= 6) {
+        player.finished = true;
+        player.finishTime = Date.now() - this.startTime;
+        player.won = false;
       }
+      
+      // 检查是否所有玩家都完成（都没猜对）
+      const allFinished = Array.from(this.players.values()).every(p => p.finished);
+      if (allFinished) {
+        this.finishGame();
+      }
+      
+      return { allFinished, results: this.results };
     }
     
-    // 检查是否所有玩家都完成
-    const allFinished = Array.from(this.players.values()).every(p => p.finished);
-    if (allFinished) {
-      this.status = 'finished';
-      // 按获胜优先、时间排序
-      this.results.sort((a, b) => {
-        if (a.won && !b.won) return -1;
-        if (!a.won && b.won) return 1;
-        if (a.won && b.won) return a.time - b.time;
-        return a.attempts - b.attempts;
+    // 限时模式逻辑
+    if (this.gameMode === 'timed') {
+      player.progress = progress;
+      
+      if (won) {
+        // 玩家答对当前题目，进入下一题
+        player.solvedCount++;
+        player.currentWordIndex++;
+        player.progress = 0; // 重置尝试次数
+        player.correctCount = 0;
+        
+        return { 
+          allFinished: false, 
+          results: this.results,
+          nextWord: true,
+          newWordIndex: player.currentWordIndex
+        };
+      } else if (progress >= 6) {
+        // 限时模式用完6次机会，进入下一题
+        player.currentWordIndex++;
+        player.progress = 0;
+        player.correctCount = 0;
+        
+        return { 
+          allFinished: false, 
+          results: this.results,
+          nextWord: true,
+          newWordIndex: player.currentWordIndex
+        };
+      }
+      
+      return { allFinished: false, results: this.results };
+    }
+    
+    return { allFinished: false, results: this.results };
+  }
+
+  // 结束游戏并生成排名
+  finishGame() {
+    this.status = 'finished';
+    
+    // 清除限时模式的计时器
+    if (this.gameTimer) {
+      clearTimeout(this.gameTimer);
+      this.gameTimer = null;
+    }
+    
+    // 生成结果列表
+    this.results = [];
+    for (const player of this.players.values()) {
+      this.results.push({
+        playerId: player.id,
+        playerName: player.name,
+        attempts: player.progress,
+        time: player.finishTime || (Date.now() - this.startTime),
+        won: player.won || false,
+        correctCount: player.correctCount || 0,
+        solvedCount: player.solvedCount || 0
       });
     }
     
-    return { allFinished, results: this.results };
+    // 根据模式排序
+    if (this.gameMode === 'race') {
+      // 竞速模式：获胜者第一，其他人按正确字母数排名（相同时按时间短）
+      this.results.sort((a, b) => {
+        if (a.won && !b.won) return -1;
+        if (!a.won && b.won) return 1;
+        // 都没赢：按正确字母数降序
+        if (a.correctCount !== b.correctCount) {
+          return b.correctCount - a.correctCount;
+        }
+        // 正确字母数相同：按时间升序
+        return a.time - b.time;
+      });
+    } else if (this.gameMode === 'timed') {
+      // 限时模式：按答对题目数排名，相同时按总用时排序
+      this.results.sort((a, b) => {
+        if (a.solvedCount !== b.solvedCount) {
+          return b.solvedCount - a.solvedCount;
+        }
+        return a.time - b.time;
+      });
+      
+      // 标记第一名为获胜者
+      if (this.results.length > 0) {
+        this.results[0].won = true;
+      }
+    }
+  }
+
+  // 检查是否应该因为玩家不足而结束游戏
+  checkShouldEndDueToInsufficientPlayers() {
+    if (this.status !== 'playing') return false;
+    
+    // 只剩一个玩家时结束游戏
+    if (this.players.size <= 1) {
+      // 将剩余玩家标记为获胜者（如果还没完成的话）
+      for (const player of this.players.values()) {
+        if (!player.finished) {
+          player.finished = true;
+          player.finishTime = Date.now() - this.startTime;
+          player.won = true; // 剩余玩家自动获胜
+        }
+      }
+      this.finishGame();
+      return true;
+    }
+    return false;
   }
 
   getPublicInfo() {
@@ -173,13 +309,20 @@ class Room {
       hostId: this.hostId,
       difficulty: this.difficulty,
       maxPlayers: this.maxPlayers,
+      gameMode: this.gameMode,
+      timeLimit: this.timeLimit,
       status: this.status,
+      startTime: this.startTime,
+      endTime: this.endTime,
       players: Array.from(this.players.values()).map(p => ({
         id: p.id,
         name: p.name,
         isHost: p.isHost,
         ready: p.ready,
         progress: p.progress,
+        correctCount: p.correctCount,
+        solvedCount: p.solvedCount,
+        currentWordIndex: p.currentWordIndex,
         finished: p.finished,
         won: p.won
       })),
@@ -193,15 +336,15 @@ io.on('connection', (socket) => {
   console.log(`Player connected: ${socket.id}`);
   
   // 创建房间
-  socket.on('create_room', ({ playerName, difficulty, maxPlayers }, callback) => {
-    const room = new Room(socket.id, playerName, difficulty, maxPlayers);
+  socket.on('create_room', ({ playerName, difficulty, gameMode, timeLimit }, callback) => {
+    const room = new Room(socket.id, playerName, difficulty, gameMode || 'race', timeLimit);
     room.addPlayer(socket.id, playerName);
     rooms.set(room.code, room);
     
     socket.join(room.code);
     socket.roomCode = room.code;
     
-    console.log(`Room created: ${room.code} by ${playerName}`);
+    console.log(`Room created: ${room.code} by ${playerName} (mode: ${gameMode}, timeLimit: ${timeLimit})`);
     
     callback({
       success: true,
@@ -256,6 +399,50 @@ io.on('connection', (socket) => {
     callback({ success: true });
   });
 
+  // 房主修改房间设置
+  socket.on('update_room_settings', ({ difficulty, gameMode, timeLimit }, callback) => {
+    const room = rooms.get(socket.roomCode);
+    if (!room) {
+      return callback({ success: false, error: 'room_not_found' });
+    }
+    
+    // 只有房主可以修改设置
+    if (socket.id !== room.hostId) {
+      return callback({ success: false, error: 'not_host' });
+    }
+    
+    // 只能在等待状态修改
+    if (room.status !== 'waiting') {
+      return callback({ success: false, error: 'game_in_progress' });
+    }
+    
+    // 更新设置
+    if (difficulty) room.difficulty = difficulty;
+    if (gameMode) {
+      room.gameMode = gameMode;
+      room.timeLimit = gameMode === 'timed' ? (timeLimit || 3) : null;
+    }
+    if (timeLimit !== undefined && room.gameMode === 'timed') {
+      room.timeLimit = timeLimit;
+    }
+    
+    // 重置所有非房主玩家的准备状态
+    for (const player of room.players.values()) {
+      if (!player.isHost) {
+        player.ready = false;
+      }
+    }
+    
+    console.log(`Room ${room.code} settings updated: difficulty=${room.difficulty}, gameMode=${room.gameMode}, timeLimit=${room.timeLimit}`);
+    
+    // 通知所有玩家设置已更新
+    io.to(socket.roomCode).emit('room_settings_updated', {
+      room: room.getPublicInfo()
+    });
+    
+    callback({ success: true, room: room.getPublicInfo() });
+  });
+
   // 房主开始游戏
   socket.on('start_game', ({ wordList }, callback) => {
     const room = rooms.get(socket.roomCode);
@@ -271,41 +458,75 @@ io.on('connection', (socket) => {
       return callback({ success: false, error: 'players_not_ready' });
     }
     
+    // 限时模式：生成随机题目顺序
+    let shuffledIndices = null;
+    if (room.gameMode === 'timed') {
+      // 打乱题目顺序，所有玩家共享相同顺序
+      shuffledIndices = Array.from({ length: wordList.length }, (_, i) => i);
+      for (let i = shuffledIndices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledIndices[i], shuffledIndices[j]] = [shuffledIndices[j], shuffledIndices[i]];
+      }
+    }
+    
     // 选择随机单词
     const { index, word } = selectRandomWord(room.difficulty, wordList);
-    room.startGame(index, word);
+    room.startGame(
+      room.gameMode === 'timed' ? shuffledIndices[0] : index, 
+      word, 
+      room.gameMode === 'timed' ? shuffledIndices : null
+    );
     
-    console.log(`Game started in room ${room.code}, word index: ${index}`);
+    console.log(`Game started in room ${room.code}, mode: ${room.gameMode}, word index: ${room.wordIndex}`);
+    
+    // 限时模式：设置计时器
+    if (room.gameMode === 'timed' && room.timeLimit) {
+      room.gameTimer = setTimeout(() => {
+        if (room.status === 'playing') {
+          room.finishGame();
+          io.to(room.code).emit('game_finished', {
+            results: room.results,
+            room: room.getPublicInfo(),
+            reason: 'time_up'
+          });
+        }
+      }, room.timeLimit * 60 * 1000);
+    }
     
     // 通知所有玩家游戏开始
     io.to(socket.roomCode).emit('game_started', {
-      wordIndex: index,
+      wordIndex: room.wordIndex,
+      wordIndices: shuffledIndices, // 限时模式发送所有题目顺序
       room: room.getPublicInfo()
     });
     
-    callback({ success: true, wordIndex: index });
+    callback({ success: true, wordIndex: room.wordIndex, wordIndices: shuffledIndices });
   });
 
   // 更新玩家进度
-  socket.on('update_progress', ({ progress, won }) => {
+  socket.on('update_progress', ({ progress, won, correctCount }) => {
     const room = rooms.get(socket.roomCode);
     if (!room || room.status !== 'playing') return;
     
-    const { allFinished, results } = room.updatePlayerProgress(socket.id, progress, won);
+    const result = room.updatePlayerProgress(socket.id, progress, won, correctCount || 0);
     
     // 广播进度更新
     io.to(socket.roomCode).emit('progress_updated', {
       playerId: socket.id,
       progress,
       won,
+      correctCount,
+      nextWord: result.nextWord,
+      newWordIndex: result.newWordIndex,
       room: room.getPublicInfo()
     });
     
-    // 如果所有玩家完成，广播最终结果
-    if (allFinished) {
+    // 如果所有玩家完成（竞速模式），广播最终结果
+    if (result.allFinished) {
       io.to(socket.roomCode).emit('game_finished', {
-        results,
-        room: room.getPublicInfo()
+        results: result.results,
+        room: room.getPublicInfo(),
+        winner: result.winner
       });
     }
   });
@@ -321,17 +542,29 @@ io.on('connection', (socket) => {
       return callback({ success: false, error: 'not_host' });
     }
     
+    // 清除计时器
+    if (room.gameTimer) {
+      clearTimeout(room.gameTimer);
+      room.gameTimer = null;
+    }
+    
     // 重置房间状态
     room.status = 'waiting';
     room.wordIndex = null;
     room.word = null;
+    room.wordList = null;
+    room.currentWordIndex = 0;
     room.startTime = null;
+    room.endTime = null;
     room.results = [];
     
     // 重置玩家状态，保持房主准备
     for (const player of room.players.values()) {
       player.ready = player.isHost;
       player.progress = 0;
+      player.correctCount = 0;
+      player.solvedCount = 0;
+      player.currentWordIndex = 0;
       player.finished = false;
       player.finishTime = null;
       player.won = false;
@@ -362,21 +595,32 @@ function handleLeaveRoom(socket) {
   const room = rooms.get(socket.roomCode);
   if (!room) return;
   
+  const roomCode = socket.roomCode;
   const remainingPlayers = room.removePlayer(socket.id);
   
   if (remainingPlayers === 0) {
     // 房间空了，删除房间
-    rooms.delete(socket.roomCode);
-    console.log(`Room deleted: ${socket.roomCode}`);
+    rooms.delete(roomCode);
+    console.log(`Room deleted: ${roomCode}`);
   } else {
-    // 通知其他玩家
-    socket.to(socket.roomCode).emit('player_left', {
+    // 通知其他玩家有人离开
+    socket.to(roomCode).emit('player_left', {
       playerId: socket.id,
       room: room.getPublicInfo()
     });
+    
+    // 检查游戏中是否只剩一个玩家，如果是则结束游戏
+    if (room.checkShouldEndDueToInsufficientPlayers()) {
+      console.log(`Game ended in room ${roomCode} due to insufficient players`);
+      io.to(roomCode).emit('game_finished', {
+        results: room.results,
+        room: room.getPublicInfo(),
+        reason: 'insufficient_players' // 告知前端是因为玩家不足而结束
+      });
+    }
   }
   
-  socket.leave(socket.roomCode);
+  socket.leave(roomCode);
   socket.roomCode = null;
 }
 
@@ -412,6 +656,8 @@ app.get('/room/:code', (req, res) => {
   res.json({
     code: room.code,
     difficulty: room.difficulty,
+    gameMode: room.gameMode,
+    timeLimit: room.timeLimit,
     playerCount: room.players.size,
     maxPlayers: room.maxPlayers,
     status: room.status

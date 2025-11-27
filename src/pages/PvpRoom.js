@@ -16,7 +16,10 @@ import {
   faLink,
   faTrophy,
   faMedal,
-  faRedo
+  faRedo,
+  faBolt,
+  faClock,
+  faCog
 } from '@fortawesome/free-solid-svg-icons';
 import { Box } from '@mui/material';
 
@@ -31,8 +34,8 @@ import imdtMode from '@assets/imdt-mode.json';
 import easyMode from '@assets/easy-mode.json';
 import allDeposedWords from '@assets/all-deposed-words.json';
 
-import '@styles/pages/_pvpRoom.scss';
 import '@styles/pages/_wordleKor.scss';
+import '@styles/pages/_pvpRoom.scss';
 
 const modeMap = {
   easy: easyMode,
@@ -49,8 +52,8 @@ function PvpRoom() {
     connected, 
     room, 
     connect, 
-    joinRoom, 
-    setReady, 
+    setReady,
+    updateRoomSettings,
     startGame: socketStartGame,
     updateProgress,
     playAgain,
@@ -62,6 +65,10 @@ function PvpRoom() {
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
+  const [editDifficulty, setEditDifficulty] = useState('easy');
+  const [editGameMode, setEditGameMode] = useState('race');
+  const [editTimeLimit, setEditTimeLimit] = useState(3);
 
   // 游戏状态
   const [pred, setPred] = useState([]);
@@ -74,6 +81,12 @@ function PvpRoom() {
   const [shakeRow, setShakeRow] = useState(-1);
   const [winRow, setWinRow] = useState(-1);
   const [gameResults, setGameResults] = useState(null);
+  
+  // 限时模式状态
+  const [wordIndices, setWordIndices] = useState([]); // 限时模式的题目顺序
+  const [currentWordIdx, setCurrentWordIdx] = useState(0); // 当前题目索引
+  const [solvedCount, setSolvedCount] = useState(0); // 答对题目数
+  const [remainingTime, setRemainingTime] = useState(null); // 剩余时间（秒）
 
   const MAX_PRED_LENGTH = 30;
 
@@ -87,16 +100,31 @@ function PvpRoom() {
 
   // 获取答案
   const { dict_answer, answer } = useMemo(() => {
-    if (!room || room.wordIndex === null || !room.difficulty) {
+    if (!room || !room.difficulty) {
       return { dict_answer: null, answer: '' };
     }
     const wordList = modeMap[room.difficulty];
-    if (!wordList || room.wordIndex >= wordList.length) {
+    if (!wordList) {
+      return { dict_answer: null, answer: '' };
+    }
+    
+    // 限时模式：使用当前题目索引
+    if (room.gameMode === 'timed' && wordIndices.length > 0) {
+      const wordIdx = wordIndices[currentWordIdx];
+      if (wordIdx === undefined || wordIdx >= wordList.length) {
+        return { dict_answer: null, answer: '' };
+      }
+      const dictAnswer = wordList[wordIdx];
+      return { dict_answer: dictAnswer, answer: dictAnswer.value };
+    }
+    
+    // 竞速模式：使用房间的wordIndex
+    if (room.wordIndex === null || room.wordIndex >= wordList.length) {
       return { dict_answer: null, answer: '' };
     }
     const dictAnswer = wordList[room.wordIndex];
     return { dict_answer: dictAnswer, answer: dictAnswer.value };
-  }, [room]);
+  }, [room, wordIndices, currentWordIdx]);
 
   // 连接并加入房间
   useEffect(() => {
@@ -104,12 +132,29 @@ function PvpRoom() {
       connect();
     }
   }, [connect, connected]);
+  
+  // 限时模式倒计时
+  useEffect(() => {
+    if (room?.gameMode !== 'timed' || room?.status !== 'playing' || !room?.endTime) {
+      return;
+    }
+    
+    const updateTimer = () => {
+      const remaining = Math.max(0, Math.floor((room.endTime - Date.now()) / 1000));
+      setRemainingTime(remaining);
+    };
+    
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    
+    return () => clearInterval(interval);
+  }, [room?.gameMode, room?.status, room?.endTime]);
 
   // 监听游戏事件
   useEffect(() => {
     if (!socket) return;
 
-    const handleGameStarted = ({ wordIndex, room: roomData }) => {
+    const handleGameStarted = ({ wordIndex, wordIndices: indices, room: roomData }) => {
       // 重置游戏状态
       setPred([]);
       setColorList([]);
@@ -119,14 +164,36 @@ function PvpRoom() {
       setShakeRow(-1);
       setWinRow(-1);
       setGameResults(null);
+      
+      // 限时模式初始化
+      if (roomData.gameMode === 'timed' && indices) {
+        setWordIndices(indices);
+        setCurrentWordIdx(0);
+        setSolvedCount(0);
+        // 计算剩余时间
+        if (roomData.endTime) {
+          setRemainingTime(Math.max(0, Math.floor((roomData.endTime - Date.now()) / 1000)));
+        }
+      }
     };
 
-    const handleProgressUpdated = ({ playerId, progress, won, room: roomData }) => {
-      // 房间状态会自动更新
+    const handleProgressUpdated = ({ playerId, progress, won, nextWord, newWordIndex, room: roomData }) => {
+      // 限时模式：如果是自己且需要跳转下一题
+      if (playerId === socket.id && nextWord && roomData.gameMode === 'timed') {
+        setPred([]);
+        setColorList([]);
+        setListLen(5);
+        setGotAnswer(false);
+        setCurrentWordIdx(newWordIndex);
+        if (won) {
+          setSolvedCount(prev => prev + 1);
+        }
+      }
     };
 
-    const handleGameFinished = ({ results, room: roomData }) => {
-      setGameResults(results);
+    const handleGameFinished = ({ results, room: roomData, reason }) => {
+      setGameResults({ results, reason });
+      setRemainingTime(null);
     };
 
     socket.on('game_started', handleGameStarted);
@@ -186,6 +253,33 @@ function PvpRoom() {
   const handleLeaveRoom = () => {
     leaveRoom();
     navigate('/pvp');
+  };
+
+  // 打开设置面板（同步当前房间设置）
+  const handleOpenSettings = () => {
+    if (room) {
+      setEditDifficulty(room.difficulty);
+      setEditGameMode(room.gameMode);
+      setEditTimeLimit(room.timeLimit || 3);
+    }
+    setShowSettings(true);
+  };
+
+  // 保存房间设置
+  const handleSaveSettings = async () => {
+    setLoading(true);
+    try {
+      await updateRoomSettings({
+        difficulty: editDifficulty,
+        gameMode: editGameMode,
+        timeLimit: editGameMode === 'timed' ? editTimeLimit : null
+      });
+      setShowSettings(false);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // 再来一局
@@ -300,20 +394,30 @@ function PvpRoom() {
       // 胜利
       setTimeout(() => setWinRow(currentRow), 5 * 150 + 500);
       setTimeout(() => {
-        setGotAnswer(true);
-        updateProgress(currentProgress, true);
+        if (room?.gameMode === 'timed') {
+          // 限时模式：不设置gotAnswer，让玩家继续下一题
+          updateProgress(currentProgress, true, correctCount);
+        } else {
+          setGotAnswer(true);
+          updateProgress(currentProgress, true, correctCount);
+        }
       }, 5 * 150 + 1200);
     } else if (pred.length === MAX_PRED_LENGTH) {
       // 失败
       setTimeout(() => {
-        setFailAnswer(true);
-        updateProgress(currentProgress, false);
+        if (room?.gameMode === 'timed') {
+          // 限时模式：跳到下一题
+          updateProgress(currentProgress, false, correctCount);
+        } else {
+          setFailAnswer(true);
+          updateProgress(currentProgress, false, correctCount);
+        }
       }, 5 * 150 + 500);
     } else {
       // 更新进度
-      updateProgress(currentProgress, false);
+      updateProgress(currentProgress, false, correctCount);
     }
-  }, [pred, answer, listLen, updateColorPredList, showMessage, lang.center_msg.lack, lang.center_msg.wrong, updateProgress]);
+  }, [pred, answer, listLen, updateColorPredList, showMessage, lang.center_msg.lack, lang.center_msg.wrong, updateProgress, room?.gameMode]);
 
   const keyboardProps = useMemo(() => ({
     pred,
@@ -356,12 +460,6 @@ function PvpRoom() {
         <Header />
 
         <div className="pvp-room__waiting">
-          {/* 返回按钮 */}
-          <button className="pvp-room__back" onClick={handleLeaveRoom}>
-            <FontAwesomeIcon icon={faArrowLeft} />
-            <span>{lang.pvp?.leave || '离开房间'}</span>
-          </button>
-
           {/* 房间信息 */}
           <div className="pvp-room__info">
             <h1 className="pvp-room__title">{lang.pvp?.waiting_room || '等待室'}</h1>
@@ -381,13 +479,126 @@ function PvpRoom() {
               <span>{lang.pvp?.copy_link || '复制邀请链接'}</span>
             </button>
 
-            <div className="pvp-room__difficulty">
-              <span>{lang.pvp?.difficulty || '难度'}:</span>
-              <span className="pvp-room__difficulty-value">
-                {room.difficulty === 'easy' ? lang.lv1 : room.difficulty === 'imdt' ? lang.lv2 : lang.lv3}
-              </span>
+            <div className="pvp-room__game-info">
+              <div className="pvp-room__info-item">
+                <span>{lang.pvp?.game_mode || '模式'}:</span>
+                <span className="pvp-room__info-value">
+                  <FontAwesomeIcon icon={room.gameMode === 'race' ? faBolt : faClock} />
+                  {room.gameMode === 'race' 
+                    ? (lang.pvp?.mode_race || '竞速模式') 
+                    : (lang.pvp?.mode_timed || '限时模式')}
+                  {room.gameMode === 'timed' && room.timeLimit && (
+                    <small> ({room.timeLimit}{lang.pvp?.minutes || '分钟'})</small>
+                  )}
+                </span>
+              </div>
+              <div className="pvp-room__info-item">
+                <span>{lang.pvp?.difficulty || '难度'}:</span>
+                <span className="pvp-room__info-value">
+                  {room.difficulty === 'easy' ? lang.lv1 : room.difficulty === 'imdt' ? lang.lv2 : lang.lv3}
+                </span>
+              </div>
+              {isHost && (
+                <button className="pvp-room__edit-settings-btn" onClick={handleOpenSettings}>
+                  <FontAwesomeIcon icon={faCog} />
+                  <span>{lang.pvp?.edit_settings || '修改设置'}</span>
+                </button>
+              )}
             </div>
           </div>
+
+          {/* 房主设置修改弹窗 */}
+          {showSettings && isHost && (
+            <div className="pvp-room__settings-modal">
+              <div className="pvp-room__settings-content">
+                <h3>{lang.pvp?.room_settings || '房间设置'}</h3>
+                
+                {/* 游戏模式 */}
+                <div className="pvp-room__settings-field">
+                  <label>{lang.pvp?.game_mode || '游戏模式'}</label>
+                  <div className="pvp-room__settings-options">
+                    <button 
+                      className={editGameMode === 'race' ? 'active' : ''}
+                      onClick={() => setEditGameMode('race')}
+                    >
+                      <FontAwesomeIcon icon={faBolt} />
+                      <span>{lang.pvp?.mode_race || '竞速模式'}</span>
+                    </button>
+                    <button 
+                      className={editGameMode === 'timed' ? 'active' : ''}
+                      onClick={() => setEditGameMode('timed')}
+                    >
+                      <FontAwesomeIcon icon={faClock} />
+                      <span>{lang.pvp?.mode_timed || '限时模式'}</span>
+                    </button>
+                  </div>
+                </div>
+                
+                {/* 时间限制（仅限时模式） */}
+                {editGameMode === 'timed' && (
+                  <div className="pvp-room__settings-field">
+                    <label>{lang.pvp?.time_limit || '时间限制'}</label>
+                    <div className="pvp-room__settings-options time">
+                      {[3, 5, 10].map(min => (
+                        <button 
+                          key={min}
+                          className={editTimeLimit === min ? 'active' : ''}
+                          onClick={() => setEditTimeLimit(min)}
+                        >
+                          {min}{lang.pvp?.minutes || '分钟'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* 难度 */}
+                <div className="pvp-room__settings-field">
+                  <label>{lang.pvp?.difficulty || '难度'}</label>
+                  <div className="pvp-room__settings-options">
+                    <button 
+                      className={editDifficulty === 'easy' ? 'active' : ''}
+                      onClick={() => setEditDifficulty('easy')}
+                    >
+                      {lang.lv1 || '初级'}
+                    </button>
+                    <button 
+                      className={editDifficulty === 'imdt' ? 'active' : ''}
+                      onClick={() => setEditDifficulty('imdt')}
+                    >
+                      {lang.lv2 || '中级'}
+                    </button>
+                    <button 
+                      className={editDifficulty === 'hard' ? 'active' : ''}
+                      onClick={() => setEditDifficulty('hard')}
+                    >
+                      {lang.lv3 || '高级'}
+                    </button>
+                  </div>
+                </div>
+                
+                <p className="pvp-room__settings-notice">
+                  {lang.pvp?.settings_notice || '修改设置后，其他玩家需要重新准备'}
+                </p>
+                
+                <div className="pvp-room__settings-actions">
+                  <button 
+                    className="pvp-room__settings-cancel"
+                    onClick={() => setShowSettings(false)}
+                  >
+                    {lang.pvp?.cancel || '取消'}
+                  </button>
+                  <button 
+                    className="pvp-room__settings-save"
+                    onClick={handleSaveSettings}
+                    disabled={loading}
+                  >
+                    {loading ? <FontAwesomeIcon icon={faSpinner} spin /> : (lang.pvp?.save || '保存')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* 玩家列表 */}
           <div className="pvp-room__players">
@@ -471,6 +682,32 @@ function PvpRoom() {
       <Header />
 
       <div className="pvp-room__game">
+        {/* 游戏信息栏 */}
+        <div className="pvp-room__game-header">
+          {/* 限时模式：倒计时和得分 */}
+          {room.gameMode === 'timed' && (
+            <div className="pvp-room__timer-bar">
+              <div className="pvp-room__timer">
+                <FontAwesomeIcon icon={faClock} />
+                <span className={remainingTime <= 30 ? 'urgent' : ''}>
+                  {Math.floor(remainingTime / 60)}:{String(remainingTime % 60).padStart(2, '0')}
+                </span>
+              </div>
+              <div className="pvp-room__score">
+                <span>{lang.pvp?.solved || '已解'}: {solvedCount}</span>
+              </div>
+            </div>
+          )}
+          
+          {/* 竞速模式标识 */}
+          {room.gameMode === 'race' && (
+            <div className="pvp-room__mode-indicator">
+              <FontAwesomeIcon icon={faBolt} />
+              <span>{lang.pvp?.mode_race || '竞速模式'}</span>
+            </div>
+          )}
+        </div>
+
         {/* 对手进度条 */}
         <div className="pvp-room__opponents">
           {room.players
@@ -488,9 +725,12 @@ function PvpRoom() {
                   />
                 </div>
                 <span className="pvp-room__opponent-status">
-                  {player.finished 
-                    ? (player.won ? '✓' : '✗') 
-                    : `${player.progress}/6`
+                  {room.gameMode === 'timed' 
+                    ? `${player.solvedCount || 0}${lang.pvp?.questions || '题'}`
+                    : (player.finished 
+                        ? (player.won ? '✓' : '✗') 
+                        : `${player.progress}/6`
+                      )
                   }
                 </span>
               </div>
@@ -535,7 +775,7 @@ function PvpRoom() {
           </Box>
 
           {/* 键盘 */}
-          {!gotAnswer && !failAnswer && <Keyboard {...keyboardProps} />}
+          {!gotAnswer && !failAnswer && !gameResults && <Keyboard {...keyboardProps} />}
         </div>
 
         {/* 中心消息 */}
@@ -547,34 +787,53 @@ function PvpRoom() {
             <div className="pvp-room__results">
               <h2>{lang.pvp?.game_over || '游戏结束'}</h2>
               
+              {/* 结束原因提示 */}
+              {gameResults.reason === 'insufficient_players' && (
+                <p className="pvp-room__end-reason">
+                  {lang.pvp?.opponents_left || '对手已离开，游戏提前结束'}
+                </p>
+              )}
+              {gameResults.reason === 'time_up' && (
+                <p className="pvp-room__end-reason time-up">
+                  {lang.pvp?.time_up || '时间到！'}
+                </p>
+              )}
+              
               <div className="pvp-room__ranking">
-                {gameResults.map((result, index) => (
+                {gameResults.results.map((result, index) => (
                   <div 
                     key={result.playerId} 
                     className={`pvp-room__rank-item ${result.playerId === socket?.id ? 'current' : ''}`}
                   >
                     <span className="pvp-room__rank-position">
-                      {index === 0 && result.won && <FontAwesomeIcon icon={faTrophy} className="gold" />}
-                      {index === 1 && result.won && <FontAwesomeIcon icon={faMedal} className="silver" />}
-                      {index === 2 && result.won && <FontAwesomeIcon icon={faMedal} className="bronze" />}
-                      {(!result.won || index > 2) && `#${index + 1}`}
+                      {index === 0 && <FontAwesomeIcon icon={faTrophy} className="gold" />}
+                      {index === 1 && <FontAwesomeIcon icon={faMedal} className="silver" />}
+                      {index === 2 && <FontAwesomeIcon icon={faMedal} className="bronze" />}
+                      {index > 2 && `#${index + 1}`}
                     </span>
                     <span className="pvp-room__rank-name">{result.playerName}</span>
                     <span className="pvp-room__rank-stats">
-                      {result.won 
-                        ? `${result.attempts} ${lang.pvp?.attempts || '次'} / ${(result.time / 1000).toFixed(1)}s`
-                        : lang.pvp?.failed || '未猜出'
-                      }
+                      {room.gameMode === 'timed' ? (
+                        // 限时模式：显示答对题数
+                        `${result.solvedCount || 0} ${lang.pvp?.questions || '题'}`
+                      ) : (
+                        // 竞速模式：显示尝试次数/时间或正确字母数
+                        result.won 
+                          ? `${result.attempts} ${lang.pvp?.attempts || '次'} / ${(result.time / 1000).toFixed(1)}s`
+                          : `${result.correctCount || 0}/5 ${lang.pvp?.correct_letters || '正确'}`
+                      )}
                     </span>
                   </div>
                 ))}
               </div>
 
-              {/* 答案展示 */}
-              <div className="pvp-room__answer-reveal">
-                <span>{lang.pvp?.answer_was || '正确答案'}:</span>
-                <span className="pvp-room__answer korean-text">{dict_answer?.key}</span>
-              </div>
+              {/* 答案展示 - 仅竞速模式 */}
+              {room.gameMode === 'race' && dict_answer && (
+                <div className="pvp-room__answer-reveal">
+                  <span>{lang.pvp?.answer_was || '正确答案'}:</span>
+                  <span className="pvp-room__answer korean-text">{dict_answer?.key}</span>
+                </div>
+              )}
 
               <div className="pvp-room__results-actions">
                 {isHost ? (

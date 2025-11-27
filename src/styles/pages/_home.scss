@@ -56,6 +56,7 @@
   &__title-group {
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: var(--space-2);
   }
   
@@ -214,17 +215,25 @@
       align-items: center;
       justify-content: center;
       gap: var(--space-2);
-      color: white;
-      background: linear-gradient(135deg, #6366f1, #4f46e5);
-      border: none;
+      color: #6366f1;
       
       svg {
         font-size: var(--text-lg);
       }
       
+      // 自定义悬浮光晕
+      &::before {
+        background: linear-gradient(
+          to right,
+          transparent,
+          rgba(99, 102, 241, 0.1),
+          transparent
+        );
+      }
+      
       &:hover {
-        background: linear-gradient(135deg, #818cf8, #6366f1);
-        border-color: transparent;
+        border-color: #818cf8;
+        color: #4f46e5;
       }
     }
   }

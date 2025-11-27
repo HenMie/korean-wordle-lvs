@@ -18,6 +18,8 @@ html {
   // 防止字体大小调整
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  // 防止滚动条出现/消失导致页面宽度跳动
+  scrollbar-gutter: stable;
 }
 
 html,
