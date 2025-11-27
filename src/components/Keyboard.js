@@ -176,7 +176,7 @@ const Keyboard = ({
               event.currentTarget.blur();
             }}
             value={button.value}
-            className={`${keyboardColor(button.value)} ${
+            className={`korean-text ${keyboardColor(button.value)} ${
               animatedButton === button.value ? "animate-button" : ""
             }`}
             style={{ animationIterationCount: animationKey }}
@@ -195,7 +195,7 @@ const Keyboard = ({
               event.currentTarget.blur();
             }}
             value={button.value}
-            className={`${keyboardColor(button.value)} ${
+            className={`korean-text ${keyboardColor(button.value)} ${
               animatedButton === button.value ? "animate-button" : ""
             }`}
             style={{ animationIterationCount: animationKey }}
@@ -227,7 +227,7 @@ const Keyboard = ({
               event.currentTarget.blur();
             }}
             value={button.value}
-            className={`${keyboardColor(button.value)} ${
+            className={`korean-text ${keyboardColor(button.value)} ${
               animatedButton === button.value ? "animate-button" : ""
             }`}
             style={{ animationIterationCount: animationKey }}

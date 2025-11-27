@@ -104,10 +104,17 @@
 // 🔤 字体系统
 // ═══════════════════════════════════════════════════════════════════════════
 :root {
-  // 字体族
-  --font-sans: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, 
-    'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
-  --font-serif: 'Gowun Batang', 'Noto Serif KR', Georgia, serif;
+  // 字体族 - 韩语字体（游戏内容使用）
+  --font-korean: 'Pretendard Variable', 'Pretendard', 'Noto Sans KR', sans-serif;
+  --font-korean-serif: 'Gowun Batang', 'Noto Serif KR', Georgia, serif;
+  
+  // 字体族 - 中文字体（界面使用）
+  --font-chinese: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-chinese-serif: 'Noto Serif SC', 'Source Han Serif SC', serif;
+  
+  // 默认字体（韩语）
+  --font-sans: var(--font-korean);
+  --font-serif: var(--font-korean-serif);
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
   
   // 字号

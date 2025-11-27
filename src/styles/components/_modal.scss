@@ -134,14 +134,16 @@
     
     p {
       display: inline-block;
-      font-family: var(--font-serif);
+      // 韩语单词使用韩语衬线字体
+      font-family: var(--font-korean-serif);
       font-size: var(--text-3xl);
       font-weight: var(--font-bold);
       letter-spacing: var(--tracking-wide);
     }
     
     .Original {
-      font-family: var(--font-sans);
+      // 汉字读音使用韩语字体
+      font-family: var(--font-korean);
       font-size: var(--text-base);
       color: var(--color-text-tertiary);
       font-weight: var(--font-normal);
@@ -163,7 +165,8 @@
     flex: 1;
     width: 100%;
     padding: var(--space-4);
-    font-family: var(--font-sans);
+    // 韩语释义使用韩语字体
+    font-family: var(--font-korean);
     font-size: var(--text-sm);
     color: var(--color-text-secondary);
     line-height: var(--leading-relaxed);

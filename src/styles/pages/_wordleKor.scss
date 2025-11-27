@@ -60,7 +60,8 @@
     justify-content: center;
     width: var(--tile-size);
     height: var(--tile-size);
-    font-family: var(--font-sans);
+    // 韩语字母格子始终使用韩语字体
+    font-family: var(--font-korean);
     font-size: var(--text-2xl);
     font-weight: var(--font-bold);
     color: var(--color-text-primary);
@@ -181,7 +182,8 @@
     min-width: var(--key-width);
     height: var(--key-height);
     padding: 0 var(--space-2);
-    font-family: var(--font-sans);
+    // 韩语键盘始终使用韩语字体
+    font-family: var(--font-korean);
     font-size: var(--text-lg);
     font-weight: var(--font-semibold);
     color: var(--color-text-primary);

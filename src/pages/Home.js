@@ -71,7 +71,7 @@ function HomePage() {
         {/* 标题区域 */}
         <div className="homepage__title-group">
           <h1 className="homepage__title">{lang.home1}</h1>
-          <p className="homepage__subtitle">한글 Wordle</p>
+          <p className="homepage__subtitle"><span className="korean-serif">한글</span> Wordle</p>
         </div>
         
         {/* 开始游戏区域 */}

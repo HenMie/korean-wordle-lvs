@@ -186,32 +186,17 @@
       border-color: var(--color-accent);
     }
 
-    // 难度标签
-    &--easy::after {
-      content: '初级';
-      position: absolute;
-      right: var(--space-4);
-      font-size: var(--text-xs);
+    // 难度按钮颜色
+    &--easy {
       color: var(--color-correct);
-      opacity: 0.8;
     }
     
-    &--imdt::after {
-      content: '中级';
-      position: absolute;
-      right: var(--space-4);
-      font-size: var(--text-xs);
+    &--imdt {
       color: var(--color-present);
-      opacity: 0.8;
     }
     
-    &--hard::after {
-      content: '高级';
-      position: absolute;
-      right: var(--space-4);
-      font-size: var(--text-xs);
+    &--hard {
       color: #dc2626;
-      opacity: 0.8;
     }
 
     // 交错入场动画

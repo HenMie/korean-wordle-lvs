@@ -98,7 +98,8 @@
     }
 
     &--kor {
-      font-family: var(--font-serif);
+      // 韩语标题始终使用韩语衬线字体
+      font-family: var(--font-korean-serif);
       font-size: var(--text-xl);
       font-weight: var(--font-bold);
       color: var(--color-text-primary);

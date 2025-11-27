@@ -109,13 +109,13 @@ const AnswerPopup = (props) => {
             &times;
           </div>
           <p className="AnswerWord">
-            <p>{props.answer}</p>
-            <p className="Original">{meaning[currentPage - 1].original}</p>
+            <p className="korean-serif">{props.answer}</p>
+            <p className="Original korean-text">{meaning[currentPage - 1].original}</p>
           </p>
 
           {/* Meaning of words */}
           <div
-            className={`AnswerMeaning ${isExpanded ? "" : "more_active"}`}
+            className={`AnswerMeaning korean-text ${isExpanded ? "" : "more_active"}`}
             onClick={toggleExpand}
           >
             <div

@@ -327,11 +327,11 @@ function WordleKorPage() {
               
               return (
                 <div
-                  key={index}
-                  className={`${colorClass || ''} ${animationClass}`.trim()}
-                >
-                  {pred[index]?.value}
-                </div>
+                                  key={index}
+                                  className={`korean-text ${colorClass || ''} ${animationClass}`.trim()}
+                                >
+                                  {pred[index]?.value}
+                                </div>
               );
             })}
           </Box>

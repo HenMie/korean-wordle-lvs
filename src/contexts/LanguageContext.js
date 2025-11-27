@@ -16,6 +16,13 @@ export const LanguageProvider = ({ children }) => {
 
   useEffect(() => {
     localStorage.setItem("language", currentLang);
+    
+    // 根据语言设置 body class 以切换字体
+    const body = document.body;
+    // 移除所有语言 class
+    body.classList.remove('lang-zh', 'lang-ko', 'lang-en', 'lang-de', 'lang-el');
+    // 添加当前语言 class
+    body.classList.add(`lang-${currentLang}`);
   }, [currentLang]);
 
   const changeLanguage = (langCode) => {
@@ -23,7 +30,7 @@ export const LanguageProvider = ({ children }) => {
   };
 
   return (
-    <LanguageContext.Provider value={{ lang, changeLanguage }}>
+    <LanguageContext.Provider value={{ lang, currentLang, changeLanguage }}>
       {children}
     </LanguageContext.Provider>
   );
