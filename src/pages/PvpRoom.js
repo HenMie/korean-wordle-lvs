@@ -75,7 +75,6 @@ function PvpRoom() {
   } = useSocket();
 
   // 等待室状态
-  const [isReady, setIsReady] = useState(false);
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -236,8 +235,8 @@ function PvpRoom() {
   // 准备状态切换
   const handleToggleReady = async () => {
     try {
-      await setReady(!isReady);
-      setIsReady(!isReady);
+      const newReadyState = !currentPlayer?.ready;
+      await setReady(newReadyState);
     } catch (err) {
       setError(err.message);
     }
@@ -317,7 +316,6 @@ function PvpRoom() {
     setLoading(true);
     try {
       await playAgain();
-      setIsReady(isHost);
       setGameResults(null);
     } catch (err) {
       setError(err.message);
@@ -718,11 +716,11 @@ function PvpRoom() {
               </button>
             ) : (
               <button 
-                className={`pvp-room__ready-btn ${isReady ? 'ready' : ''}`}
+                className={`pvp-room__ready-btn ${currentPlayer?.ready ? 'ready' : ''}`}
                 onClick={handleToggleReady}
               >
                 <FontAwesomeIcon icon={faCheck} />
-                {isReady ? lang.pvp?.cancel_ready || '取消准备' : lang.pvp?.ready_up || '准备'}
+                {currentPlayer?.ready ? lang.pvp?.cancel_ready || '取消准备' : lang.pvp?.ready_up || '准备'}
               </button>
             )}
           </div>
