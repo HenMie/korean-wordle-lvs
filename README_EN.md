@@ -279,6 +279,9 @@ npm start
 src/
 ├── assets/                 # Static assets
 │   ├── flags/              # Language flag icons
+│   ├── buttons-kor.json    # Korean keyboard button configuration
+│   ├── dictionary.json     # 5-letter word dictionary
+│   ├── dictionary-6.json   # 6-letter word dictionary
 │   ├── easy-mode.json      # 5-letter Easy difficulty word list
 │   ├── imdt-mode.json      # 5-letter Medium difficulty word list
 │   ├── hard-mode.json      # 5-letter Hard difficulty word list
@@ -327,6 +330,8 @@ src/
 ├── styles/                 # SCSS stylesheets
 │   ├── global.scss         # Global styles and CSS variables
 │   ├── _reset.scss         # CSS reset
+│   ├── _animations.scss    # Animation styles
+│   ├── _design-tokens.scss # Design tokens (colors, spacing variables)
 │   ├── components/         # Component-specific styles
 │   └── pages/              # Page-specific styles
 │

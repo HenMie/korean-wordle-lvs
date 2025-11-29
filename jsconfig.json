@@ -7,9 +7,15 @@
       "@lang/*": ["src/lang/*"],
       "@components/*": ["src/components/*"],
       "@pages/*": ["src/pages/*"],
-      "@assets": ["src/assets/*"],
-      "@contexts": ["src/contexts/*"],
-      "@utils": ["src/utils/*"]
-    }
-  }
+      "@assets/*": ["src/assets/*"],
+      "@contexts/*": ["src/contexts/*"],
+      "@utils/*": ["src/utils/*"]
+    },
+    "target": "ES6",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "jsx": "react-jsx"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "build"]
 }

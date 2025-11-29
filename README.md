@@ -258,6 +258,9 @@ REACT_APP_SOCKET_SERVER=http://localhost:3001
 src/
 ├── assets/                 # 静态资源
 │   ├── flags/              # 语言国旗图标
+│   ├── buttons-kor.json    # 韩语键盘按钮配置
+│   ├── dictionary.json     # 5字词汇字典
+│   ├── dictionary-6.json   # 6字词汇字典
 │   ├── easy-mode.json      # 5字简单难度词库
 │   ├── imdt-mode.json      # 5字中等难度词库
 │   ├── hard-mode.json      # 5字困难难度词库
@@ -306,6 +309,8 @@ src/
 ├── styles/                 # SCSS 样式表
 │   ├── global.scss         # 全局样式和 CSS 变量
 │   ├── _reset.scss         # CSS 重置
+│   ├── _animations.scss    # 动画样式
+│   ├── _design-tokens.scss # 设计令牌（颜色、间距等变量）
 │   ├── components/         # 组件专用样式
 │   └── pages/              # 页面专用样式
 │
