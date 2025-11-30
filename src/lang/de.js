@@ -158,7 +158,7 @@ export const de = {
   },
   center_msg: {
     lack: "Nicht genug Buchstaben.",
-    much: "Input exceeds limit.",
+    much: "Eingabe überschreitet das Limit.",
     wrong: "Kein gültiges Substantiv.",
     play_block:
       "Sie befinden sich bereits in einem Spiel. Bitte drücken Sie die Schaltfläche Schließen.",
