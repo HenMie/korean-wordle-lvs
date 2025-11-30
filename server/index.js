@@ -7,6 +7,14 @@ const express = require('express');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const {
+  getWordList,
+  resolveWordLength,
+  resolveDifficulty,
+  resolveGameMode,
+  resolveTimeLimit,
+  DEFAULT_TIME_LIMIT,
+} = require('./utils/wordLists');
 
 const app = express();
 
@@ -39,27 +47,22 @@ function generateRoomCode() {
   return code;
 }
 
-// 从单词列表中随机选择单词
-function selectRandomWord(difficulty, wordList) {
-  const index = Math.floor(Math.random() * wordList.length);
-  return { index, word: wordList[index] };
-}
-
 // 房间类
 class Room {
   constructor(hostId, hostName, difficulty, gameMode = 'race', timeLimit = null, wordLength = 5) {
+    const normalizedWordLength = resolveWordLength(wordLength);
+    const normalizedGameMode = resolveGameMode(gameMode);
     this.code = generateRoomCode();
     this.hostId = hostId;
-    this.difficulty = difficulty;
-    this.wordLength = wordLength; // 5字或6字模式
+    this.difficulty = resolveDifficulty(normalizedWordLength, difficulty);
+    this.wordLength = normalizedWordLength; // 5字或6字模式
     this.maxPlayers = 4; // 固定为4人
-    this.gameMode = gameMode; // 'race' 竞速模式, 'timed' 限时模式
-    this.timeLimit = timeLimit; // 限时模式的时间限制（分钟）
+    this.gameMode = normalizedGameMode; // 'race' 竞速模式, 'timed' 限时模式
+    this.timeLimit =
+      normalizedGameMode === 'timed' ? resolveTimeLimit(timeLimit) : null; // 限时模式的时间限制（分钟）
     this.players = new Map();
     this.status = 'waiting'; // waiting, playing, finished
     this.wordIndex = null;
-    this.word = null;
-    this.wordList = null; // 限时模式需要存储题目列表
     this.currentWordIndex = 0; // 限时模式当前题目索引
     this.startTime = null;
     this.endTime = null; // 限时模式的结束时间
@@ -125,11 +128,9 @@ class Room {
     return true;
   }
 
-  startGame(wordIndex, word, wordList = null) {
+  startGame(wordIndex) {
     this.status = 'playing';
     this.wordIndex = wordIndex;
-    this.word = word;
-    this.wordList = wordList; // 限时模式存储完整题目列表
     this.currentWordIndex = 0;
     this.startTime = Date.now();
     this.results = [];
@@ -339,14 +340,29 @@ io.on('connection', (socket) => {
   
   // 创建房间
   socket.on('create_room', ({ playerName, difficulty, gameMode, timeLimit, wordLength }, callback) => {
-    const room = new Room(socket.id, playerName, difficulty, gameMode || 'race', timeLimit, wordLength || 5);
+    const normalizedWordLength = resolveWordLength(wordLength);
+    const normalizedDifficulty = resolveDifficulty(normalizedWordLength, difficulty);
+    const normalizedGameMode = resolveGameMode(gameMode);
+    const normalizedTimeLimit =
+      normalizedGameMode === 'timed' ? resolveTimeLimit(timeLimit) : null;
+
+    const room = new Room(
+      socket.id,
+      playerName,
+      normalizedDifficulty,
+      normalizedGameMode,
+      normalizedTimeLimit,
+      normalizedWordLength,
+    );
     room.addPlayer(socket.id, playerName);
     rooms.set(room.code, room);
     
     socket.join(room.code);
     socket.roomCode = room.code;
     
-    console.log(`Room created: ${room.code} by ${playerName} (mode: ${gameMode}, timeLimit: ${timeLimit}, wordLength: ${wordLength})`);
+    console.log(
+      `Room created: ${room.code} by ${playerName} (mode: ${normalizedGameMode}, timeLimit: ${normalizedTimeLimit}, wordLength: ${normalizedWordLength})`,
+    );
     
     callback({
       success: true,
@@ -418,16 +434,23 @@ io.on('connection', (socket) => {
       return callback({ success: false, error: 'game_in_progress' });
     }
     
-    // 更新设置
-    if (difficulty) room.difficulty = difficulty;
-    if (wordLength) room.wordLength = wordLength;
-    if (gameMode) {
-      room.gameMode = gameMode;
-      room.timeLimit = gameMode === 'timed' ? (timeLimit || 3) : null;
-    }
-    if (timeLimit !== undefined && room.gameMode === 'timed') {
-      room.timeLimit = timeLimit;
-    }
+    const nextWordLength =
+      wordLength !== undefined ? resolveWordLength(wordLength) : room.wordLength;
+    const nextDifficulty = resolveDifficulty(nextWordLength, difficulty, room.difficulty);
+    const nextGameMode =
+      gameMode !== undefined ? resolveGameMode(gameMode, room.gameMode) : room.gameMode;
+    const nextTimeLimit =
+      nextGameMode === 'timed'
+        ? resolveTimeLimit(
+            timeLimit !== undefined ? timeLimit : room.timeLimit ?? DEFAULT_TIME_LIMIT,
+            room.timeLimit ?? DEFAULT_TIME_LIMIT,
+          )
+        : null;
+
+    room.wordLength = nextWordLength;
+    room.difficulty = nextDifficulty;
+    room.gameMode = nextGameMode;
+    room.timeLimit = nextTimeLimit;
     
     // 重置所有非房主玩家的准备状态
     for (const player of room.players.values()) {
@@ -436,7 +459,9 @@ io.on('connection', (socket) => {
       }
     }
     
-    console.log(`Room ${room.code} settings updated: difficulty=${room.difficulty}, wordLength=${room.wordLength}, gameMode=${room.gameMode}, timeLimit=${room.timeLimit}`);
+    console.log(
+      `Room ${room.code} settings updated: difficulty=${room.difficulty}, wordLength=${room.wordLength}, gameMode=${room.gameMode}, timeLimit=${room.timeLimit}`,
+    );
     
     // 通知所有玩家设置已更新
     io.to(socket.roomCode).emit('room_settings_updated', {
@@ -447,7 +472,7 @@ io.on('connection', (socket) => {
   });
 
   // 房主开始游戏
-  socket.on('start_game', ({ wordList }, callback) => {
+  socket.on('start_game', (_, callback) => {
     const room = rooms.get(socket.roomCode);
     if (!room) {
       return callback({ success: false, error: 'room_not_found' });
@@ -461,10 +486,14 @@ io.on('connection', (socket) => {
       return callback({ success: false, error: 'players_not_ready' });
     }
     
+    const wordList = getWordList(room.wordLength, room.difficulty);
+    if (!wordList.length) {
+      return callback({ success: false, error: 'word_list_unavailable' });
+    }
+    
     // 限时模式：生成随机题目顺序
     let shuffledIndices = null;
     if (room.gameMode === 'timed') {
-      // 打乱题目顺序，所有玩家共享相同顺序
       shuffledIndices = Array.from({ length: wordList.length }, (_, i) => i);
       for (let i = shuffledIndices.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -472,13 +501,12 @@ io.on('connection', (socket) => {
       }
     }
     
-    // 选择随机单词
-    const { index, word } = selectRandomWord(room.difficulty, wordList);
-    room.startGame(
-      room.gameMode === 'timed' ? shuffledIndices[0] : index, 
-      word, 
-      room.gameMode === 'timed' ? shuffledIndices : null
-    );
+    const startingIndex =
+      room.gameMode === 'timed'
+        ? shuffledIndices[0]
+        : Math.floor(Math.random() * wordList.length);
+    
+    room.startGame(startingIndex);
     
     console.log(`Game started in room ${room.code}, mode: ${room.gameMode}, word index: ${room.wordIndex}`);
     
@@ -554,8 +582,6 @@ io.on('connection', (socket) => {
     // 重置房间状态
     room.status = 'waiting';
     room.wordIndex = null;
-    room.word = null;
-    room.wordList = null;
     room.currentWordIndex = 0;
     room.startTime = null;
     room.endTime = null;

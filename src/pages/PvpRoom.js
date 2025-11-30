@@ -249,11 +249,14 @@ function PvpRoom() {
     // 根据字数选择词库
     const wordListMap = WORD_LENGTH === 6 ? modeMap6 : modeMap;
     const wordList = wordListMap[room.difficulty];
-    if (!wordList) return;
+    if (!wordList || wordList.length === 0) {
+      setError(lang.pvp?.errors?.unknown || '发生未知错误');
+      return;
+    }
 
     setLoading(true);
     try {
-      await socketStartGame(wordList.map(w => w.value));
+      await socketStartGame();
     } catch (err) {
       setError(err.message);
     } finally {

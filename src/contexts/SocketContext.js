@@ -182,14 +182,14 @@ export function SocketProvider({ children }) {
   }, []);
 
   // 开始游戏
-  const startGame = useCallback((wordList) => {
+  const startGame = useCallback(() => {
     return new Promise((resolve, reject) => {
       if (!socketRef.current?.connected) {
         reject(new Error('Not connected'));
         return;
       }
 
-      socketRef.current.emit('start_game', { wordList }, (response) => {
+      socketRef.current.emit('start_game', {}, (response) => {
         if (response.success) {
           resolve(response);
         } else {

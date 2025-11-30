@@ -55,6 +55,9 @@ WORKDIR /app/server
 COPY server/ ./
 COPY --from=backend-builder /app/server/node_modules ./node_modules
 
+# 复制词库（供 PVP 服务器使用）
+COPY src/assets /app/src/assets
+
 # 复制 supervisord 配置
 COPY supervisord.conf /etc/supervisord.conf
 
