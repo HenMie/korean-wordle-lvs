@@ -69,6 +69,11 @@ function Sidebar() {
             isOn={keyboardMode}
             onChange={() => handleToggle(setKeyboardMode)}
           />
+          
+          {/* 版本号 */}
+          <div className="sidebar__version">
+            v{process.env.REACT_APP_VERSION}
+          </div>
         </div>
       </div>
       <div className="sidebar__overlay" onClick={toggleSidebar}></div>
