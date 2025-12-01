@@ -45,7 +45,7 @@ For more information, see *Information Modal* in the game.
 - **Keyboard**: Keyboard input is supported.
 - **Multi-language Support**: Available in Korean, English, Chinese, German, and Greek.
 - **Game State Persistence**: Your progress is saved automatically.
-- **PVP Battle Mode**: Compete with friends (2-4 players) in real-time with both 5-letter and 6-letter modes to see who guesses the word fastest!
+- **PVP Battle Mode**: Compete with friends (2-10 players) in real-time with both 5-letter and 6-letter modes to see who guesses the word fastest!
 
 ## Tech Stack
 
@@ -242,7 +242,7 @@ This will automatically:
 
 ## PVP Battle Mode
 
-The PVP mode allows 2-4 players to compete in real-time, guessing the same word simultaneously.
+The PVP mode allows 2-10 players to compete in real-time, guessing the same word simultaneously.
 
 ### How to Play PVP
 1. **Create a Room**: Click "PVP Battle" on the home page, enter your nickname, select game mode (Race/Timed), word length (5/6 letters), and difficulty, then create a room.
