@@ -1,10 +1,17 @@
 /**
  * 管理员认证状态管理
+ * 验证通过后端 API 完成，确保凭据安全
  */
 import { atom } from 'recoil';
 
 // Session Storage Key
 const ADMIN_SESSION_KEY = 'admin_authenticated';
+
+// 获取后端 API 基础 URL
+const getApiBase = () => {
+  const rc = window.__RUNTIME_CONFIG__ || {};
+  return rc.ANALYTICS_API_URL || process.env.REACT_APP_ANALYTICS_API_URL || '/api/analytics';
+};
 
 // 检查是否已登录（从 sessionStorage 恢复）
 const getInitialAuthState = () => {
@@ -21,29 +28,40 @@ export const adminAuthState = atom({
   default: getInitialAuthState(),
 });
 
-const getAdminConfig = () => {
-  const rc = window.__RUNTIME_CONFIG__ || {};
-  return {
-    username: rc.ADMIN_USERNAME || process.env.REACT_APP_ADMIN_USERNAME || '',
-    password: rc.ADMIN_PASSWORD || process.env.REACT_APP_ADMIN_PASSWORD || '',
-  };
-};
-
 /**
- * 验证管理员凭据
+ * 验证管理员凭据（通过后端 API）
  * @param {string} username - 用户名
  * @param {string} password - 密码
- * @returns {boolean} - 是否验证成功
+ * @returns {Promise<{success: boolean, error?: string}>} - 验证结果
  */
-export const validateAdmin = (username, password) => {
-  const { username: adminUsername, password: adminPassword } = getAdminConfig();
+export const validateAdmin = async (username, password) => {
+  try {
+    const response = await fetch(`${getApiBase()}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username, password }),
+    });
 
-  // 检查是否配置了管理员账号
-  if (!adminUsername || !adminPassword) {
-    return false;
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      return { success: true };
+    }
+
+    return {
+      success: false,
+      error: data.error || '验证失败',
+      configured: data.configured,
+    };
+  } catch (error) {
+    console.error('[Admin] Login error:', error);
+    return {
+      success: false,
+      error: '网络错误，请稍后重试',
+    };
   }
-
-  return username === adminUsername && password === adminPassword;
 };
 
 /**
@@ -62,10 +80,16 @@ export const saveAuthState = (isAuthenticated) => {
 };
 
 /**
- * 检查管理后台是否已配置
+ * 检查管理后台是否已配置（通过后端 API）
+ * @returns {Promise<boolean>} - 是否已配置
  */
-export const isAdminConfigured = () => {
-  const { username, password } = getAdminConfig();
-  return !!(username && password);
+export const isAdminConfigured = async () => {
+  try {
+    const response = await fetch(`${getApiBase()}/auth/status`);
+    if (!response.ok) return false;
+    const data = await response.json();
+    return data.configured === true;
+  } catch {
+    return false;
+  }
 };
-

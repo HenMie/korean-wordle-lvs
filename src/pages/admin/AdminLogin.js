@@ -19,6 +19,8 @@ function AdminLogin() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [configured, setConfigured] = useState(true);
+  const [checkingConfig, setCheckingConfig] = useState(true);
 
   // 如果已登录，重定向到仪表板
   useEffect(() => {
@@ -28,22 +30,33 @@ function AdminLogin() {
   }, [isAuthenticated, navigate]);
 
   // 检查是否配置了管理员账号
-  const configured = isAdminConfigured();
+  useEffect(() => {
+    const checkConfig = async () => {
+      setCheckingConfig(true);
+      const isConfigured = await isAdminConfigured();
+      setConfigured(isConfigured);
+      setCheckingConfig(false);
+    };
+    checkConfig();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
-    // 模拟网络延迟，增加安全感
-    await new Promise(resolve => setTimeout(resolve, 500));
+    const result = await validateAdmin(username, password);
 
-    if (validateAdmin(username, password)) {
+    if (result.success) {
       setIsAuthenticated(true);
       saveAuthState(true);
       navigate('/admin/dashboard', { replace: true });
     } else {
-      setError('用户名或密码错误');
+      setError(result.error || '用户名或密码错误');
+      // 如果返回配置状态为 false，更新状态
+      if (result.configured === false) {
+        setConfigured(false);
+      }
     }
 
     setIsLoading(false);
@@ -64,10 +77,10 @@ function AdminLogin() {
           <p className="admin-login__subtitle">请输入管理员凭据</p>
         </div>
 
-        {!configured && (
+        {!checkingConfig && !configured && (
           <div className="admin-login__warning">
             <FontAwesomeIcon icon={faExclamationTriangle} />
-            <span>管理员账号未配置，请在环境变量中设置</span>
+            <span>管理员账号未配置，请在服务器环境变量中设置</span>
           </div>
         )}
 
@@ -85,7 +98,7 @@ function AdminLogin() {
               placeholder="请输入用户名"
               required
               autoComplete="username"
-              disabled={!configured}
+              disabled={!configured || checkingConfig}
             />
           </div>
 
@@ -102,7 +115,7 @@ function AdminLogin() {
               placeholder="请输入密码"
               required
               autoComplete="current-password"
-              disabled={!configured}
+              disabled={!configured || checkingConfig}
             />
           </div>
 
@@ -115,9 +128,9 @@ function AdminLogin() {
           <button
             type="submit"
             className="admin-login__submit"
-            disabled={isLoading || !configured}
+            disabled={isLoading || !configured || checkingConfig}
           >
-            {isLoading ? '验证中...' : '登录'}
+            {checkingConfig ? '检查中...' : isLoading ? '验证中...' : '登录'}
           </button>
         </form>
 
@@ -133,4 +146,3 @@ function AdminLogin() {
 }
 
 export default AdminLogin;
-

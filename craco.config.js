@@ -3,6 +3,14 @@ const webpack = require('webpack');
 const packageJson = require('./package.json');
 
 module.exports = {
+  devServer: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
+  },
   webpack: {
     plugins: {
       add: [

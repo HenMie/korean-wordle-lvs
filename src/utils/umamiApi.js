@@ -1,85 +1,79 @@
 /**
  * Umami API 服务
+ * 通过后端代理访问 Umami API，确保 Token 安全
  */
 
-const getConfig = () => {
+// 获取后端 API 基础 URL
+const getApiBase = () => {
   const rc = window.__RUNTIME_CONFIG__ || {};
-  return {
-    apiUrl: rc.UMAMI_API_URL || process.env.REACT_APP_UMAMI_API_URL || '',
-    apiToken: rc.UMAMI_API_TOKEN || process.env.REACT_APP_UMAMI_API_TOKEN || '',
-    websiteId: rc.UMAMI_WEBSITE_ID || process.env.REACT_APP_UMAMI_WEBSITE_ID || '',
-  };
+  // 优先使用运行时配置，其次使用环境变量，默认使用相对路径
+  return rc.ANALYTICS_API_URL || process.env.REACT_APP_ANALYTICS_API_URL || '/api/analytics';
 };
 
 /**
- * 创建请求头
- * Umami Cloud 使用 x-umami-api-key header
- * Self-hosted 使用 Authorization: Bearer header
+ * 检查 API 是否已配置（通过后端状态端点检查）
  */
-const getHeaders = () => {
-  const { apiUrl, apiToken } = getConfig();
-  const isCloud = apiUrl.includes('api.umami.is');
-  
-  if (isCloud) {
-    return {
-      'x-umami-api-key': apiToken,
-      'Accept': 'application/json',
-    };
+export const isApiConfigured = async () => {
+  try {
+    const response = await fetch(`${getApiBase()}/status`);
+    if (!response.ok) return false;
+    const data = await response.json();
+    return data.configured === true;
+  } catch {
+    return false;
   }
-  
-  return {
-    'Authorization': `Bearer ${apiToken}`,
-    'Content-Type': 'application/json',
-  };
 };
 
 /**
- * 检查 API 是否已配置
+ * 同步版本的配置检查（用于初始渲染）
+ * 后端代理模式下始终返回 true，实际配置状态应通过 isApiConfigured 异步获取
  */
-export const isApiConfigured = () => {
-  const { apiUrl, apiToken, websiteId } = getConfig();
-  return !!(apiUrl && apiToken && websiteId);
+export const isApiConfiguredSync = () => {
+  // 使用后端代理模式，假设默认的相对路径（/api/analytics）可用
+  return true;
 };
 
 /**
  * 通用请求函数
  */
 const apiRequest = async (endpoint, params = {}) => {
-  const { apiUrl, websiteId } = getConfig();
-  
-  if (!isApiConfigured()) {
-    throw new Error('Umami API 未配置');
-  }
-
   const queryString = new URLSearchParams(params).toString();
-  // Umami Cloud: /v1/websites/..., Self-hosted: /api/websites/...
-  const basePath = apiUrl.includes('api.umami.is') ? '/v1/websites' : '/api/websites';
-  const url = `${apiUrl}${basePath}/${websiteId}${endpoint}${queryString ? `?${queryString}` : ''}`;
-  
+  const url = `${getApiBase()}${endpoint}${queryString ? `?${queryString}` : ''}`;
+
   const response = await fetch(url, {
     method: 'GET',
-    headers: getHeaders(),
+    headers: {
+      Accept: 'application/json',
+    },
   });
 
   if (!response.ok) {
-    throw new Error(`API 请求失败: ${response.status}`);
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `API 请求失败: ${response.status}`);
   }
 
   return response.json();
 };
 
-const getTimezone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
-
+/**
+ * 获取统计数据
+ */
 export const getStats = async ({ startAt, endAt, unit = 'day' }) => {
-  return apiRequest('/stats', { startAt, endAt, unit, timezone: getTimezone() });
+  return apiRequest('/stats', { startAt, endAt, unit });
 };
 
+/**
+ * 获取页面浏览数据
+ */
 export const getPageviews = async ({ startAt, endAt, unit = 'day' }) => {
-  return apiRequest('/pageviews', { startAt, endAt, unit, timezone: getTimezone() });
+  return apiRequest('/pageviews', { startAt, endAt, unit });
 };
 
+/**
+ * 获取指标数据
+ */
 export const getMetrics = async ({ startAt, endAt, type, limit = 10, unit = 'day' }) => {
-  return apiRequest('/metrics', { startAt, endAt, type, limit, unit, timezone: getTimezone() });
+  return apiRequest('/metrics', { startAt, endAt, type, limit, unit });
 };
 
 /**
@@ -89,23 +83,53 @@ export const getActiveVisitors = async () => {
   return apiRequest('/active');
 };
 
+/**
+ * 获取事件数据
+ */
 export const getEvents = async ({ startAt, endAt, unit = 'day' }) => {
-  return apiRequest('/events', { startAt, endAt, unit, timezone: getTimezone() });
+  return apiRequest('/events', { startAt, endAt, unit });
 };
 
-export const getEventData = async ({ startAt, endAt }) => {
-  return getMetrics({ startAt, endAt, type: 'event', limit: 50 });
+/**
+ * 获取事件计数数据
+ */
+export const getEventData = async ({ startAt, endAt, limit = 50 }) => {
+  return apiRequest('/event-data', { startAt, endAt, limit });
+};
+
+/**
+ * 获取事件属性字段列表
+ */
+export const getEventDataFields = async ({ startAt, endAt }) => {
+  return apiRequest('/event-data/fields', { startAt, endAt });
+};
+
+/**
+ * 获取特定事件属性的值分布
+ * @param {object} params - 参数
+ * @param {number} params.startAt - 开始时间戳
+ * @param {number} params.endAt - 结束时间戳
+ * @param {string} [params.eventName] - 事件名称（可选）
+ * @param {string} [params.fieldName] - 字段名称（可选）
+ */
+export const getEventDataValues = async ({ startAt, endAt, eventName, fieldName }) => {
+  const params = { startAt, endAt };
+  if (eventName) params.eventName = eventName;
+  if (fieldName) params.fieldName = fieldName;
+  return apiRequest('/event-data/values', params);
 };
 
 const umamiApi = {
   isApiConfigured,
+  isApiConfiguredSync,
   getStats,
   getPageviews,
   getMetrics,
   getActiveVisitors,
   getEvents,
   getEventData,
+  getEventDataFields,
+  getEventDataValues,
 };
 
 export default umamiApi;
-

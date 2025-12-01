@@ -3,6 +3,9 @@
  * WebSocket server for real-time multiplayer Wordle
  */
 
+// 从项目根目录加载 .env 文件
+require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
+
 const express = require('express');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
@@ -15,8 +18,10 @@ const {
   resolveTimeLimit,
   DEFAULT_TIME_LIMIT,
 } = require('./utils/wordLists');
+const analyticsRouter = require('./routes/analytics');
 
 const app = express();
+app.use(express.json());
 
 const rawOrigins = process.env.PVP_CLIENT_URL || process.env.CLIENT_URL || '*';
 const allowedOrigins =
@@ -666,6 +671,9 @@ setInterval(() => {
     }
   }
 }, 60000); // 每分钟检查一次
+
+// Analytics API 代理路由
+app.use('/api/analytics', analyticsRouter);
 
 // 健康检查端点
 app.get('/health', (req, res) => {
