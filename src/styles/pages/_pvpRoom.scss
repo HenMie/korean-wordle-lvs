@@ -870,12 +870,23 @@
     background: var(--color-bg-secondary);
     border-radius: var(--radius-md);
     margin-bottom: var(--space-6);
+    transition: all var(--duration-fast) var(--ease-out);
     
     span:first-child {
       font-size: var(--text-sm);
       color: var(--color-text-tertiary);
       text-transform: uppercase;
       letter-spacing: var(--tracking-wide);
+    }
+    
+    &--clickable {
+      cursor: pointer;
+      
+      &:hover {
+        background: var(--color-bg-tertiary);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
+      }
     }
   }
 
@@ -885,11 +896,112 @@
     color: var(--color-correct);
     letter-spacing: 0.1em;
   }
+  
+  &__view-meaning {
+    font-size: var(--text-xs) !important;
+    color: var(--color-text-tertiary) !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    opacity: 0.8;
+    transition: opacity var(--duration-fast) var(--ease-out);
+    
+    .pvp-room__answer-reveal:hover & {
+      opacity: 1;
+    }
+  }
+  
+  // ─────────────────────────────────────────────────────────────────────────
+  // 词义展示
+  // ─────────────────────────────────────────────────────────────────────────
+  &__meaning-word {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    
+    .korean-serif {
+      font-family: var(--font-korean-serif);
+      font-size: var(--text-3xl);
+      font-weight: var(--font-bold);
+      color: var(--color-text-primary);
+      letter-spacing: var(--tracking-wide);
+    }
+  }
+  
+  &__meaning-original {
+    font-family: var(--font-korean);
+    font-size: var(--text-base);
+    color: var(--color-text-tertiary);
+    font-weight: var(--font-normal);
+  }
+  
+  &__meaning-content {
+    width: 100%;
+    padding: var(--space-4);
+    font-family: var(--font-korean);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    line-height: var(--leading-relaxed);
+    text-align: center;
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-lg);
+    max-height: 120px;
+    overflow-y: auto;
+    
+    &.more_active {
+      cursor: pointer;
+      
+      &:hover {
+        color: var(--color-text-primary);
+      }
+    }
+  }
+  
+  &__meaning-pagination {
+    display: flex;
+    gap: var(--space-2);
+    justify-content: center;
+    margin-top: var(--space-3);
+  }
+  
+  &__pagination-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    color: var(--color-text-secondary);
+    background-color: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+    
+    &:hover {
+      background-color: var(--color-border-light);
+      border-color: var(--color-border-medium);
+    }
+    
+    &.active {
+      background-color: var(--color-text-primary);
+      border-color: var(--color-text-primary);
+      color: var(--color-text-inverse);
+    }
+  }
+  
 
   &__results-actions {
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
+    
+    // 词义页面的返回按钮上方间隔
+    &--meaning {
+      margin-top: var(--space-6);
+    }
   }
 
   &__again-btn {
@@ -1103,6 +1215,46 @@
         color: var(--color-dark-text-primary);
         background: var(--color-dark-bg-elevated);
       }
+    }
+    
+    // 词义展示暗色模式
+    &__meaning-word {
+      .korean-serif {
+        color: var(--color-dark-text-primary);
+      }
+    }
+    
+    &__meaning-original {
+      color: var(--color-dark-text-tertiary);
+    }
+    
+    &__meaning-content {
+      background: var(--color-dark-bg-secondary);
+      color: var(--color-dark-text-secondary);
+      
+      &.more_active:hover {
+        color: var(--color-dark-text-primary);
+      }
+    }
+    
+    &__pagination-btn {
+      background-color: var(--color-dark-bg-secondary);
+      border-color: var(--color-dark-border-light);
+      color: var(--color-dark-text-secondary);
+      
+      &:hover {
+        background-color: var(--color-dark-border-light);
+      }
+      
+      &.active {
+        background-color: var(--color-dark-text-primary);
+        border-color: var(--color-dark-text-primary);
+        color: var(--color-dark-bg-primary);
+      }
+    }
+    
+    &__view-meaning {
+      color: var(--color-dark-text-tertiary) !important;
     }
     
     &__play-area {

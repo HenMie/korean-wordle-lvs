@@ -41,6 +41,10 @@ import hardMode6 from '@assets/hard-mode-6.json';
 import imdtMode6 from '@assets/imdt-mode-6.json';
 import allDeposedWords6 from '@assets/all-deposed-words-6.json';
 
+// 词典（用于释义查询）
+import dictionary from '@assets/dictionary.json';
+import dictionary6 from '@assets/dictionary-6.json';
+
 import '@styles/pages/_wordleKor.scss';
 import '@styles/pages/_pvpRoom.scss';
 
@@ -101,6 +105,11 @@ function PvpRoom() {
   const [currentWordIdx, setCurrentWordIdx] = useState(0); // 当前题目索引
   const [solvedCount, setSolvedCount] = useState(0); // 答对题目数
   const [remainingTime, setRemainingTime] = useState(null); // 剩余时间（秒）
+  
+  // 词义查看状态
+  const [showMeaning, setShowMeaning] = useState(false);
+  const [meaningPage, setMeaningPage] = useState(1);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // 根据房间设置确定字数
   const WORD_LENGTH = room?.wordLength || 5;
@@ -117,6 +126,11 @@ function PvpRoom() {
   // 获取词库 - 根据字数选择
   const validWordsSet = useMemo(() => {
     return WORD_LENGTH === 6 ? allDeposedWords6 : allDeposedWords;
+  }, [WORD_LENGTH]);
+
+  // 获取词典 - 根据字数选择（用于释义查询）
+  const currentDictionary = useMemo(() => {
+    return WORD_LENGTH === 6 ? dictionary6 : dictionary;
   }, [WORD_LENGTH]);
 
   // 获取答案
@@ -148,6 +162,16 @@ function PvpRoom() {
     const dictAnswer = wordList[room.wordIndex];
     return { dict_answer: dictAnswer, answer: dictAnswer.value };
   }, [room, wordIndices, currentWordIdx, WORD_LENGTH]);
+
+  // 获取单词释义（缓存结果避免重复计算）
+  const answerMeanings = useMemo(() => {
+    if (!dict_answer?.key) return [];
+    const items = currentDictionary.filter((item) => item.key === dict_answer.key);
+    return items.map((item) => ({
+      mean: item.mean,
+      original: item.original,
+    }));
+  }, [currentDictionary, dict_answer?.key]);
 
   // 连接并加入房间
   useEffect(() => {
@@ -188,6 +212,10 @@ function PvpRoom() {
       setShakeRow(-1);
       setWinRow(-1);
       setGameResults(null);
+      // 重置词义查看状态
+      setShowMeaning(false);
+      setMeaningPage(1);
+      setIsExpanded(false);
       
       // 限时模式初始化
       if (roomData.gameMode === 'timed' && indices) {
@@ -853,80 +881,151 @@ function PvpRoom() {
         {gameResults && (
           <div className="pvp-room__results-overlay">
             <div className="pvp-room__results">
-              <h2>{lang.pvp?.game_over || '游戏结束'}</h2>
-              
-              {/* 结束原因提示 */}
-              {gameResults.reason === 'insufficient_players' && (
-                <p className="pvp-room__end-reason">
-                  {lang.pvp?.opponents_left || '对手已离开，游戏提前结束'}
-                </p>
-              )}
-              {gameResults.reason === 'time_up' && (
-                <p className="pvp-room__end-reason time-up">
-                  {lang.pvp?.time_up || '时间到！'}
-                </p>
-              )}
-              
-              <div className="pvp-room__ranking">
-                {gameResults.results.map((result, index) => (
-                  <div 
-                    key={result.playerId} 
-                    className={`pvp-room__rank-item ${result.playerId === socket?.id ? 'current' : ''}`}
-                  >
-                    <span className="pvp-room__rank-position">
-                      {index === 0 && <FontAwesomeIcon icon={faTrophy} className="gold" />}
-                      {index === 1 && <FontAwesomeIcon icon={faMedal} className="silver" />}
-                      {index === 2 && <FontAwesomeIcon icon={faMedal} className="bronze" />}
-                      {index > 2 && `#${index + 1}`}
-                    </span>
-                    <span className="pvp-room__rank-name">{result.playerName}</span>
-                    <span className="pvp-room__rank-stats">
-                      {room.gameMode === 'timed' ? (
-                        // 限时模式：显示答对题数
-                        `${result.solvedCount || 0} ${lang.pvp?.questions || '题'}`
-                      ) : (
-                        // 竞速模式：显示尝试次数/时间或正确字母数
-                        result.won 
-                          ? `${result.attempts} ${lang.pvp?.attempts || '次'} / ${(result.time / 1000).toFixed(1)}s`
-                          : `${result.correctCount || 0}/${WORD_LENGTH} ${lang.pvp?.correct_letters || '正确'}`
-                      )}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              {/* 答案展示 - 仅竞速模式 */}
-              {room.gameMode === 'race' && dict_answer && (
-                <div className="pvp-room__answer-reveal">
-                  <span>{lang.pvp?.answer_was || '正确答案'}:</span>
-                  <span className="pvp-room__answer korean-text">{dict_answer?.key}</span>
-                </div>
-              )}
-
-              <div className="pvp-room__results-actions">
-                {isHost ? (
-                  <button 
-                    className="pvp-room__again-btn"
-                    onClick={handlePlayAgain}
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <FontAwesomeIcon icon={faSpinner} spin />
-                    ) : (
-                      <>
-                        <FontAwesomeIcon icon={faRedo} />
-                        {lang.pvp?.play_again || '再来一局'}
-                      </>
+              {showMeaning && dict_answer && answerMeanings.length > 0 ? (
+                // 词义查看页面
+                <>
+                  <h2>{lang.button?.meaning || '单词释义'}</h2>
+                  
+                  <div className="pvp-room__meaning-word">
+                    <p className="korean-serif">{dict_answer.key}</p>
+                    {answerMeanings[meaningPage - 1]?.original && (
+                      <p className="pvp-room__meaning-original korean-text">
+                        {answerMeanings[meaningPage - 1].original}
+                      </p>
                     )}
-                  </button>
-                ) : (
-                  <p className="pvp-room__wait-host">{lang.pvp?.wait_host || '等待房主开始下一局...'}</p>
-                )}
-                <button className="pvp-room__leave-btn" onClick={handleLeaveRoom}>
-                  <FontAwesomeIcon icon={faArrowLeft} />
-                  {lang.pvp?.leave || '离开房间'}
-                </button>
-              </div>
+                  </div>
+                  
+                  <div 
+                    className={`pvp-room__meaning-content korean-text ${isExpanded ? '' : 'more_active'}`}
+                    onClick={() => setIsExpanded(true)}
+                  >
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html:
+                          isExpanded ||
+                          (answerMeanings[meaningPage - 1]?.mean?.length || 0) <= 55
+                            ? answerMeanings[meaningPage - 1]?.mean || ''
+                            : (answerMeanings[meaningPage - 1]?.mean?.substring(0, 55) || '') + '...▼',
+                      }}
+                    />
+                  </div>
+                  
+                  {/* 分页按钮 */}
+                  {answerMeanings.length > 1 && (
+                    <div className="pvp-room__meaning-pagination">
+                      {answerMeanings.map((_, idx) => (
+                        <button
+                          key={idx}
+                          className={`pvp-room__pagination-btn ${meaningPage === idx + 1 ? 'active' : ''}`}
+                          onClick={() => {
+                            setMeaningPage(idx + 1);
+                            setIsExpanded(false);
+                          }}
+                        >
+                          {idx + 1}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <div className="pvp-room__results-actions pvp-room__results-actions--meaning">
+                    <button 
+                      className="pvp-room__again-btn"
+                      onClick={() => {
+                        setShowMeaning(false);
+                        setMeaningPage(1);
+                        setIsExpanded(false);
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faArrowLeft} />
+                      {lang.button?.back || '返回'}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                // 结果总结页面
+                <>
+                  <h2>{lang.pvp?.game_over || '游戏结束'}</h2>
+                  
+                  {/* 结束原因提示 */}
+                  {gameResults.reason === 'insufficient_players' && (
+                    <p className="pvp-room__end-reason">
+                      {lang.pvp?.opponents_left || '对手已离开，游戏提前结束'}
+                    </p>
+                  )}
+                  {gameResults.reason === 'time_up' && (
+                    <p className="pvp-room__end-reason time-up">
+                      {lang.pvp?.time_up || '时间到！'}
+                    </p>
+                  )}
+                  
+                  <div className="pvp-room__ranking">
+                    {gameResults.results.map((result, index) => (
+                      <div 
+                        key={result.playerId} 
+                        className={`pvp-room__rank-item ${result.playerId === socket?.id ? 'current' : ''}`}
+                      >
+                        <span className="pvp-room__rank-position">
+                          {index === 0 && <FontAwesomeIcon icon={faTrophy} className="gold" />}
+                          {index === 1 && <FontAwesomeIcon icon={faMedal} className="silver" />}
+                          {index === 2 && <FontAwesomeIcon icon={faMedal} className="bronze" />}
+                          {index > 2 && `#${index + 1}`}
+                        </span>
+                        <span className="pvp-room__rank-name">{result.playerName}</span>
+                        <span className="pvp-room__rank-stats">
+                          {room.gameMode === 'timed' ? (
+                            // 限时模式：显示答对题数
+                            `${result.solvedCount || 0} ${lang.pvp?.questions || '题'}`
+                          ) : (
+                            // 竞速模式：显示尝试次数/时间或正确字母数
+                            result.won 
+                              ? `${result.attempts} ${lang.pvp?.attempts || '次'} / ${(result.time / 1000).toFixed(1)}s`
+                              : `${result.correctCount || 0}/${WORD_LENGTH} ${lang.pvp?.correct_letters || '正确'}`
+                          )}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* 答案展示 - 仅竞速模式 */}
+                  {room.gameMode === 'race' && dict_answer && (
+                    <div 
+                      className="pvp-room__answer-reveal pvp-room__answer-reveal--clickable"
+                      onClick={() => setShowMeaning(true)}
+                      title={lang.button?.meaning || '查看释义'}
+                    >
+                      <span>{lang.pvp?.answer_was || '正确答案'}:</span>
+                      <span className="pvp-room__answer korean-text">{dict_answer?.key}</span>
+                      <span className="pvp-room__view-meaning">{lang.button?.meaning || '查看释义'} →</span>
+                    </div>
+                  )}
+
+                  <div className="pvp-room__results-actions">
+                    {isHost ? (
+                      <button 
+                        className="pvp-room__again-btn"
+                        onClick={handlePlayAgain}
+                        disabled={loading}
+                      >
+                        {loading ? (
+                          <FontAwesomeIcon icon={faSpinner} spin />
+                        ) : (
+                          <>
+                            <FontAwesomeIcon icon={faRedo} />
+                            {lang.pvp?.play_again || '再来一局'}
+                          </>
+                        )}
+                      </button>
+                    ) : (
+                      <p className="pvp-room__wait-host">{lang.pvp?.wait_host || '等待房主开始下一局...'}</p>
+                    )}
+                    <button className="pvp-room__leave-btn" onClick={handleLeaveRoom}>
+                      <FontAwesomeIcon icon={faArrowLeft} />
+                      {lang.pvp?.leave || '离开房间'}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}
