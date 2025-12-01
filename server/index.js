@@ -56,7 +56,7 @@ class Room {
     this.hostId = hostId;
     this.difficulty = resolveDifficulty(normalizedWordLength, difficulty);
     this.wordLength = normalizedWordLength; // 5字或6字模式
-    this.maxPlayers = 4; // 固定为4人
+    this.maxPlayers = 10; // 固定为10人
     this.gameMode = normalizedGameMode; // 'race' 竞速模式, 'timed' 限时模式
     this.timeLimit =
       normalizedGameMode === 'timed' ? resolveTimeLimit(timeLimit) : null; // 限时模式的时间限制（分钟）
