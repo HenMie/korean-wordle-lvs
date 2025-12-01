@@ -23,7 +23,7 @@ import { useLanguage } from "@contexts/LanguageContext";
 import { Helmet } from "react-helmet-async";
 
 // Analytics
-import { trackGameEnd, trackGuessSubmit } from "@utils/analytics";
+import { trackGameEnd, trackGuessSubmit, trackGameResumeDecision } from "@utils/analytics";
 
 // 6字模式映射
 const modeMap = {
@@ -104,6 +104,7 @@ function WordleKor6Page() {
     }
     setShowResumeModal(false);
     setGameInitialized(true);
+    trackGameResumeDecision('resume', mode, WORD_LENGTH);
   }, [savedGame, mode, navigate]);
 
   // Handle new game
@@ -111,6 +112,7 @@ function WordleKor6Page() {
     clearGameState(mode);
     setShowResumeModal(false);
     setGameInitialized(true);
+    trackGameResumeDecision('new', mode, WORD_LENGTH);
   }, [mode]);
 
   // Check for saved game on mount

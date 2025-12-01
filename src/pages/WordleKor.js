@@ -24,7 +24,7 @@ import { useLanguage } from "@contexts/LanguageContext";
 import { Helmet } from "react-helmet-async";
 
 // Analytics
-import { trackGameEnd, trackGuessSubmit } from "@utils/analytics";
+import { trackGameEnd, trackGuessSubmit, trackGameResumeDecision } from "@utils/analytics";
 
 const modeMap = {
   easy: easyMode,
@@ -101,6 +101,7 @@ function WordleKorPage() {
     }
     setShowResumeModal(false);
     setGameInitialized(true);
+    trackGameResumeDecision('resume', mode, 5);
   }, [savedGame, mode, navigate]);
 
   // Handle new game
@@ -108,6 +109,7 @@ function WordleKorPage() {
     clearGameState(mode);
     setShowResumeModal(false);
     setGameInitialized(true);
+    trackGameResumeDecision('new', mode, 5);
   }, [mode]);
 
   // Check for saved game on mount

@@ -19,6 +19,7 @@ import {
 import InfoModal from "./InfoModal.js";
 import Sidebar from "./Sidebar.js";
 import LangBtn from "./LangBtn.js";
+import { trackInfoModalView } from "@utils/analytics";
 
 // localStorage key for first visit check
 const FIRST_VISIT_KEY = "wordle_has_seen_rules";
@@ -52,6 +53,7 @@ function Header() {
       handleCloseInfoModal();
     } else {
       setShowInfoModal(true);
+      trackInfoModalView();
     }
   };
 

@@ -47,7 +47,7 @@ import dictionary6 from '@assets/dictionary-6.json';
 
 import '@styles/pages/_wordleKor.scss';
 import '@styles/pages/_pvpRoom.scss';
-import { trackPvpGameStart, trackPvpGameEnd } from '@utils/analytics';
+import { trackPvpGameStart, trackPvpGameEnd, trackPvpShare, trackPvpPlayAgain } from '@utils/analytics';
 
 // 5字模式映射
 const modeMap = {
@@ -322,6 +322,7 @@ function PvpRoom() {
     navigator.clipboard.writeText(roomCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    trackPvpShare('code', roomCode);
   };
 
   // 复制邀请链接
@@ -330,6 +331,7 @@ function PvpRoom() {
     navigator.clipboard.writeText(link);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    trackPvpShare('link', roomCode);
   };
 
   // 离开房间
@@ -373,6 +375,7 @@ function PvpRoom() {
     try {
       await playAgain();
       setGameResults(null);
+      trackPvpPlayAgain(room?.gameMode, room?.players?.length || 0);
     } catch (err) {
       setError(err.message);
     } finally {

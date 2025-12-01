@@ -4,6 +4,7 @@ import "@styles/components/_modal.scss";
 import dictionary from "@assets/dictionary.json";
 import dictionary6 from "@assets/dictionary-6.json";
 import { useLanguage } from "@contexts/LanguageContext";
+import { trackShareResult, trackViewMeaning } from "@utils/analytics";
 
 const AnswerPopup = (props) => {
   const { lang } = useLanguage();
@@ -69,6 +70,7 @@ const AnswerPopup = (props) => {
 
   const handleWordsMeaningClick = () => {
     setIsMeanWord(true);
+    trackViewMeaning(answer, mode, wordLength);
   };
 
   const handleNoWordsMeaningClick = () => {
@@ -116,6 +118,8 @@ ${generateShareGrid()}`;
       await navigator.clipboard.writeText(shareText);
       setShowCopied(true);
       setTimeout(() => setShowCopied(false), 2000);
+      // 追踪分享行为
+      trackShareResult(mode, wordLength, !failAnswer, attempts);
     } catch (err) {
       // Fallback for older browsers
       const textArea = document.createElement('textarea');
@@ -129,6 +133,8 @@ ${generateShareGrid()}`;
         document.execCommand('copy');
         setShowCopied(true);
         setTimeout(() => setShowCopied(false), 2000);
+        // 追踪分享行为（降级方案）
+        trackShareResult(mode, wordLength, !failAnswer, attempts);
       } catch (e) {
         console.error('Failed to copy:', e);
       }

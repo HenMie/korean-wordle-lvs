@@ -292,6 +292,26 @@ REACT_APP_UMAMI_SRC=https://cloud.umami.is/script.js
 
 > **Note:** If `REACT_APP_UMAMI_WEBSITE_ID` is not configured, analytics will be automatically disabled.
 
+#### Tracked Events
+
+| Event | Description | Data Properties |
+|-------|-------------|-----------------|
+| `game_start` | Start solo game | mode, wordLength |
+| `game_end` | Game over | mode, wordLength, result, attempts |
+| `guess_submit` | Submit guess | mode, wordLength, attemptNumber |
+| `share_result` | Share game result | mode, wordLength, result, attempts |
+| `view_meaning` | View word meaning | word, mode, wordLength |
+| `game_resume` | Game resume decision | decision, mode, wordLength |
+| `pvp_room_create` | Create PVP room | gameMode, wordLength, difficulty, timeLimit |
+| `pvp_room_join` | Join PVP room | wordLength, difficulty |
+| `pvp_game_start` | PVP game start | gameMode, wordLength, difficulty, playerCount |
+| `pvp_game_end` | PVP game end | gameMode, wordLength, result, rank, playerCount |
+| `pvp_share` | PVP share invite | type, roomCode |
+| `pvp_play_again` | PVP play again | gameMode, playerCount |
+| `info_modal_view` | View game rules | - |
+| `setting_change` | Settings change | setting, value |
+| `language_change` | Language change | language |
+
 ## Project Structure
 
 ```

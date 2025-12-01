@@ -135,6 +135,85 @@ export const trackPvpGameEnd = ({ gameMode, wordLength, result, rank, playerCoun
 };
 
 // ============================================
+// 用户交互事件
+// ============================================
+
+/**
+ * 追踪分享结果
+ * @param {string} mode - 难度模式
+ * @param {number} wordLength - 字数
+ * @param {boolean} won - 是否获胜
+ * @param {number} attempts - 猜测次数
+ */
+export const trackShareResult = (mode, wordLength, won, attempts) => {
+  trackEvent('share_result', {
+    mode,
+    wordLength,
+    result: won ? 'win' : 'lose',
+    attempts,
+  });
+};
+
+/**
+ * 追踪 PVP 分享（复制房间码/邀请链接）
+ * @param {string} type - 分享类型 (code/link)
+ * @param {string} roomCode - 房间码
+ */
+export const trackPvpShare = (type, roomCode) => {
+  trackEvent('pvp_share', {
+    type,
+    roomCode,
+  });
+};
+
+/**
+ * 追踪信息弹窗查看
+ */
+export const trackInfoModalView = () => {
+  trackEvent('info_modal_view', {});
+};
+
+/**
+ * 追踪游戏恢复决策
+ * @param {string} decision - 决策 (resume/new)
+ * @param {string} mode - 难度模式
+ * @param {number} wordLength - 字数
+ */
+export const trackGameResumeDecision = (decision, mode, wordLength) => {
+  trackEvent('game_resume', {
+    decision,
+    mode,
+    wordLength,
+  });
+};
+
+/**
+ * 追踪查看单词释义
+ * @param {string} word - 单词
+ * @param {string} mode - 难度模式
+ * @param {number} wordLength - 字数
+ */
+export const trackViewMeaning = (word, mode, wordLength) => {
+  trackEvent('view_meaning', {
+    word,
+    mode,
+    wordLength,
+  });
+};
+
+/**
+ * 追踪 PVP 再来一局
+ * @param {string} gameMode - 游戏模式 (race/timed)
+ * @param {number} playerCount - 玩家数量
+ */
+export const trackPvpPlayAgain = (gameMode, playerCount) => {
+  trackEvent('pvp_play_again', {
+    gameMode,
+    playerCount,
+  });
+};
+
+// ============================================
 // 用户设置事件
 // ============================================
 
@@ -188,10 +267,16 @@ const analytics = {
   trackGameStart,
   trackGameEnd,
   trackGuessSubmit,
+  trackShareResult,
   trackPvpRoomCreate,
   trackPvpRoomJoin,
   trackPvpGameStart,
   trackPvpGameEnd,
+  trackPvpShare,
+  trackPvpPlayAgain,
+  trackInfoModalView,
+  trackGameResumeDecision,
+  trackViewMeaning,
   trackSettingChange,
   trackLanguageChange,
   trackPageView,

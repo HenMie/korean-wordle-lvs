@@ -271,6 +271,26 @@ REACT_APP_UMAMI_SRC=https://cloud.umami.is/script.js
 
 > **注意：** 如果不配置 `REACT_APP_UMAMI_WEBSITE_ID`，统计功能将自动禁用。
 
+#### 追踪的事件
+
+| 事件名 | 说明 | 数据属性 |
+|--------|------|----------|
+| `game_start` | 开始单人游戏 | mode, wordLength |
+| `game_end` | 游戏结束 | mode, wordLength, result, attempts |
+| `guess_submit` | 提交猜测 | mode, wordLength, attemptNumber |
+| `share_result` | 分享游戏结果 | mode, wordLength, result, attempts |
+| `view_meaning` | 查看单词释义 | word, mode, wordLength |
+| `game_resume` | 游戏恢复决策 | decision, mode, wordLength |
+| `pvp_room_create` | 创建 PVP 房间 | gameMode, wordLength, difficulty, timeLimit |
+| `pvp_room_join` | 加入 PVP 房间 | wordLength, difficulty |
+| `pvp_game_start` | PVP 游戏开始 | gameMode, wordLength, difficulty, playerCount |
+| `pvp_game_end` | PVP 游戏结束 | gameMode, wordLength, result, rank, playerCount |
+| `pvp_share` | PVP 分享邀请 | type, roomCode |
+| `pvp_play_again` | PVP 再来一局 | gameMode, playerCount |
+| `info_modal_view` | 查看游戏规则 | - |
+| `setting_change` | 设置变更 | setting, value |
+| `language_change` | 语言切换 | language |
+
 ## 项目结构
 
 ```
