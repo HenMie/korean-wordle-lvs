@@ -6,6 +6,8 @@ import WordleKor6 from "@pages/WordleKor6.js";
 import NotFound from "@pages/NotFound.js";
 import PvpLobby from "@pages/PvpLobby.js";
 import PvpRoom from "@pages/PvpRoom.js";
+import AdminLogin from "@pages/admin/AdminLogin.js";
+import AdminDashboard from "@pages/admin/AdminDashboard.js";
 import { SocketProvider } from "@contexts/SocketContext.js";
 import { useThemeSync } from "@state/themeState.js";
 import "@styles/_reset.scss";
@@ -87,6 +89,9 @@ function App() {
               <PvpRoom />
             </SocketProvider>
           } />
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
