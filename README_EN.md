@@ -279,15 +279,27 @@ npm start
 
 This project integrates [Umami Analytics](https://umami.is/), supporting both Umami Cloud and self-hosted instances.
 
-Configure in `.env` or `.env.local`:
+**For local development**, configure in `.env` or `.env.local`:
 
 ```ini
 # Umami Website ID (required, obtained after creating a project in Umami)
 REACT_APP_UMAMI_WEBSITE_ID=your-website-id
 
 # Umami script URL (optional, defaults to Umami Cloud)
-# For self-hosted instances, use your own URL
 REACT_APP_UMAMI_SRC=https://cloud.umami.is/script.js
+```
+
+**For Docker deployment**, configure via environment variables:
+
+```bash
+# Option 1: Using docker-compose (recommended)
+# Add configuration to .env file, then start
+docker-compose up -d
+
+# Option 2: Run directly (also works with images pulled from Docker Hub)
+docker run -d -p 3000:80 \
+  -e REACT_APP_UMAMI_WEBSITE_ID=your-website-id \
+  chouann/korean-wordle:latest
 ```
 
 > **Note:** If `REACT_APP_UMAMI_WEBSITE_ID` is not configured, analytics will be automatically disabled.

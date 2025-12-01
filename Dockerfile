@@ -15,6 +15,7 @@ RUN npm ci --legacy-peer-deps
 COPY . .
 
 # 构建生产版本（WebSocket 使用相对路径，通过 nginx 代理）
+# 注意：Umami 配置在运行时通过 config.js 注入，不在构建时烘焙
 RUN npm run build
 
 # ==========================================
@@ -64,9 +65,13 @@ COPY supervisord.conf /etc/supervisord.conf
 # 暴露端口（只需要 80）
 EXPOSE 80
 
+# 复制启动脚本
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=10s \
   CMD wget --no-verbose --tries=1 --spider http://localhost:80 || exit 1
 
-# 启动 supervisord 管理 nginx 和 node
-CMD ["supervisord", "-c", "/etc/supervisord.conf"]
+# 使用启动脚本（生成运行时配置后启动 supervisord）
+CMD ["/docker-entrypoint.sh"]

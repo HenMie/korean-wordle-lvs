@@ -258,15 +258,27 @@ REACT_APP_SOCKET_SERVER=http://localhost:3001
 
 本项目集成了 [Umami Analytics](https://umami.is/)，支持 Umami Cloud 和自部署实例。
 
-在 `.env` 或 `.env.local` 中配置：
+**本地开发时**，在 `.env` 或 `.env.local` 中配置：
 
 ```ini
 # Umami 网站 ID（必填，在 Umami 创建项目后获取）
 REACT_APP_UMAMI_WEBSITE_ID=your-website-id
 
 # Umami 脚本地址（可选，默认使用 Umami Cloud）
-# 自部署时填写你的实例地址
 REACT_APP_UMAMI_SRC=https://cloud.umami.is/script.js
+```
+
+**Docker 部署时**，通过环境变量配置：
+
+```bash
+# 方式一：使用 docker-compose（推荐）
+# 编辑 .env 文件添加配置，然后启动
+docker-compose up -d
+
+# 方式二：直接运行（从 Docker Hub 拉取的镜像也支持）
+docker run -d -p 3000:80 \
+  -e REACT_APP_UMAMI_WEBSITE_ID=your-website-id \
+  chouann/korean-wordle:latest
 ```
 
 > **注意：** 如果不配置 `REACT_APP_UMAMI_WEBSITE_ID`，统计功能将自动禁用。

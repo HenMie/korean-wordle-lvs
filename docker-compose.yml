@@ -11,6 +11,8 @@ services:
       - "${HOST_PORT:-3000}:80"
     environment:
       - TZ=${TZ:-Asia/Shanghai}
+      - REACT_APP_UMAMI_WEBSITE_ID=${REACT_APP_UMAMI_WEBSITE_ID:-}
+      - REACT_APP_UMAMI_SRC=${REACT_APP_UMAMI_SRC:-https://cloud.umami.is/script.js}
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
       interval: 30s
