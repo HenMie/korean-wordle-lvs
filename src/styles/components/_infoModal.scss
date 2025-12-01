@@ -334,6 +334,75 @@
         }
       }
     }
+    
+    // ─────────────────────────────────────────────────────────────────────────
+    // "一起试试" 按钮呼吸动画
+    // ─────────────────────────────────────────────────────────────────────────
+    .try-btn {
+      position: relative;
+      animation: breathe 2.2s ease-in-out infinite;
+      background: linear-gradient(135deg, var(--color-correct) 0%, #3d8a5e 100%);
+      box-shadow: 0 4px 15px rgba(74, 156, 109, 0.45);
+      
+      &::after {
+        content: '';
+        position: absolute;
+        inset: -4px;
+        border-radius: calc(var(--radius-lg) + 2px);
+        background: linear-gradient(135deg, var(--color-correct) 0%, #3d8a5e 100%);
+        opacity: 0;
+        z-index: -1;
+        animation: breathe-glow 2.2s ease-in-out infinite;
+        filter: blur(6px);
+      }
+      
+      &:hover {
+        animation: none;
+        transform: translateY(-2px) scale(1.06);
+        box-shadow: 0 8px 25px rgba(74, 156, 109, 0.55);
+        
+        &::after {
+          animation: none;
+          opacity: 0.5;
+        }
+      }
+      
+      body.dark-mode & {
+        background: linear-gradient(135deg, #5ab882 0%, var(--color-correct) 100%);
+        box-shadow: 0 4px 20px rgba(90, 184, 130, 0.5);
+        
+        &::after {
+          background: linear-gradient(135deg, #5ab882 0%, var(--color-correct) 100%);
+        }
+        
+        &:hover {
+          box-shadow: 0 8px 30px rgba(90, 184, 130, 0.6);
+        }
+      }
+    }
+  }
+  
+  // 呼吸动画关键帧
+  @keyframes breathe {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 4px 15px rgba(74, 156, 109, 0.45);
+    }
+    50% {
+      transform: scale(1.06);
+      box-shadow: 0 8px 28px rgba(74, 156, 109, 0.6);
+    }
+  }
+  
+  @keyframes breathe-glow {
+    0%, 100% {
+      opacity: 0;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.4;
+      transform: scale(1.08);
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────

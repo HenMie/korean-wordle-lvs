@@ -9,6 +9,7 @@ import {
   keyboardModeState,
 } from "@state/themeState";
 import { useLanguage } from "@contexts/LanguageContext";
+import { trackSettingChange } from "@utils/analytics";
 
 function Sidebar() {
   const { lang } = useLanguage();
@@ -21,8 +22,12 @@ function Sidebar() {
   const [colorMode, setColorMode] = useRecoilState(colorModeState);
   const [keyboardMode, setKeyboardMode] = useRecoilState(keyboardModeState);
 
-  const handleToggle = (setter) => {
-    setter((prev) => !prev);
+  const handleToggle = (setter, settingName) => {
+    setter((prev) => {
+      const newValue = !prev;
+      trackSettingChange(settingName, newValue);
+      return newValue;
+    });
   };
 
   const themeOptions = [
@@ -48,7 +53,10 @@ function Sidebar() {
                 <button
                   key={option.value}
                   className={`theme-option ${darkModePreference === option.value ? "theme-option--active" : ""}`}
-                  onClick={() => setDarkModePreference(option.value)}
+                  onClick={() => {
+                    setDarkModePreference(option.value);
+                    trackSettingChange('darkMode', option.value);
+                  }}
                 >
                   {option.label}
                 </button>
@@ -60,14 +68,14 @@ function Sidebar() {
             title={lang.settings.color}
             description={lang.settings.color_desc}
             isOn={colorMode}
-            onChange={() => handleToggle(setColorMode)}
+            onChange={() => handleToggle(setColorMode, 'colorMode')}
           />
           <hr />
           <Toggle
             title={lang.settings.keyboard}
             description={lang.settings.keyboard_desc}
             isOn={keyboardMode}
-            onChange={() => handleToggle(setKeyboardMode)}
+            onChange={() => handleToggle(setKeyboardMode, 'keyboardMode')}
           />
           
           {/* 版本号 */}

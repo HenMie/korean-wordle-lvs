@@ -12,6 +12,7 @@ import gr_flag from "@assets/flags/gr-flag.svg";
 import de_flag from "@assets/flags/de-flag.svg";
 import cn_flag from "@assets/flags/cn-flag.svg";
 import { useLanguage } from "@contexts/LanguageContext";
+import { trackLanguageChange } from "@utils/analytics";
 
 export default function AccountMenu() {
   const { changeLanguage } = useLanguage();
@@ -46,6 +47,7 @@ export default function AccountMenu() {
     localStorage.setItem("language", lang);
     changeLanguage(lang);
     setLangIconState(!langIconState);
+    trackLanguageChange(lang);
   };
 
   const [anchorEl, setAnchorEl] = React.useState(null);

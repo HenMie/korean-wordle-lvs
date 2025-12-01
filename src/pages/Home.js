@@ -30,6 +30,7 @@ import imdtMode6 from "@assets/imdt-mode-6.json";
 import hardMode6 from "@assets/hard-mode-6.json";
 
 import { useLanguage } from "@contexts/LanguageContext";
+import { trackGameStart } from "@utils/analytics";
 
 const modeMap = {
   easy: easyMode,
@@ -60,12 +61,14 @@ function HomePage() {
   const handleNavigation = (difficulty) => {
     const wordList = modeMap[difficulty];
     const randomId = Math.floor(Math.random() * wordList.length);
+    trackGameStart(difficulty, 5);
     navigate(`/play/${difficulty}/${randomId}`);
   };
 
   const handleNavigation6 = (mode) => {
     const wordList = modeMap6[mode];
     const randomId = Math.floor(Math.random() * wordList.length);
+    trackGameStart(mode, 6);
     navigate(`/play6/${mode}/${randomId}`);
   };
 

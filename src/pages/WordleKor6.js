@@ -22,6 +22,9 @@ import allDeposedWords6 from "@assets/all-deposed-words-6.json";
 import { useLanguage } from "@contexts/LanguageContext";
 import { Helmet } from "react-helmet-async";
 
+// Analytics
+import { trackGameEnd, trackGuessSubmit } from "@utils/analytics";
+
 // 6字模式映射
 const modeMap = {
   imdt: imdtMode6,
@@ -245,6 +248,9 @@ function WordleKor6Page() {
     const correctCount = updatedColorList.filter((color) => color === "green").length;
     const currentRow = Math.floor((pred.length - 1) / WORD_LENGTH);
 
+    // 追踪猜测提交
+    trackGuessSubmit(mode, WORD_LENGTH, currentRow + 1);
+
     if (correctCount === WORD_LENGTH) {
       // 延迟触发获胜动画，等翻转完成后
       setTimeout(() => {
@@ -253,13 +259,15 @@ function WordleKor6Page() {
       
       setTimeout(() => {
         setGotAnswer(true);
+        trackGameEnd(mode, WORD_LENGTH, true, currentRow + 1);
       }, WORD_LENGTH * 150 + 1200);
     } else if (pred.length === MAX_PRED_LENGTH) {
       setTimeout(() => {
         setFailAnswer(true);
+        trackGameEnd(mode, WORD_LENGTH, false, 6);
       }, WORD_LENGTH * 150 + 500);
     }
-  }, [pred, jsonData, answer, listLen, updateColorPredList, showMessage, lang.center_msg.lack, lang.center_msg.wrong, MAX_PRED_LENGTH]);
+  }, [pred, jsonData, answer, listLen, updateColorPredList, showMessage, lang.center_msg.lack, lang.center_msg.wrong, MAX_PRED_LENGTH, mode]);
 
   const keyboardProps = useMemo(() => ({
     pred,

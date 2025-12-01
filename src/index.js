@@ -5,6 +5,18 @@ import { HelmetProvider } from "react-helmet-async";
 import { LanguageProvider } from "@contexts/LanguageContext";
 import App from "./App";
 
+// 动态注入 Umami Analytics 脚本（基于环境变量）
+const umamiWebsiteId = process.env.REACT_APP_UMAMI_WEBSITE_ID;
+const umamiSrc = process.env.REACT_APP_UMAMI_SRC || 'https://cloud.umami.is/script.js';
+
+if (umamiWebsiteId) {
+  const script = document.createElement('script');
+  script.defer = true;
+  script.src = umamiSrc;
+  script.setAttribute('data-website-id', umamiWebsiteId);
+  document.head.appendChild(script);
+}
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>

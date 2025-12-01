@@ -46,6 +46,7 @@
 - **多语言支持**：支持韩语、英语、中文、德语和希腊语。
 - **游戏状态保存**：你的游戏进度会自动保存。
 - **PVP 对战模式**：与好友（2-10 人）实时对战，支持 5 字和 6 字模式，看谁最快猜出单词！
+- **数据统计**：集成 Umami Analytics，追踪游戏数据和用户行为。
 
 ## 技术栈
 
@@ -58,6 +59,7 @@
 | 图标 | FontAwesome |
 | 构建工具 | CRACO (Create React App Configuration Override) |
 | SEO | React Helmet |
+| 数据统计 | Umami Analytics |
 | 部署 | Vercel, Docker |
 
 ## Docker 部署
@@ -251,6 +253,23 @@ REACT_APP_SOCKET_SERVER=http://localhost:3001
 ```
 
 **Docker 部署时**，无需配置任何 PVP 相关环境变量，前端会自动通过同域 `/socket.io` 路径连接 WebSocket 服务。
+
+### 数据统计配置（可选）
+
+本项目集成了 [Umami Analytics](https://umami.is/)，支持 Umami Cloud 和自部署实例。
+
+在 `.env` 或 `.env.local` 中配置：
+
+```ini
+# Umami 网站 ID（必填，在 Umami 创建项目后获取）
+REACT_APP_UMAMI_WEBSITE_ID=your-website-id
+
+# Umami 脚本地址（可选，默认使用 Umami Cloud）
+# 自部署时填写你的实例地址
+REACT_APP_UMAMI_SRC=https://cloud.umami.is/script.js
+```
+
+> **注意：** 如果不配置 `REACT_APP_UMAMI_WEBSITE_ID`，统计功能将自动禁用。
 
 ## 项目结构
 

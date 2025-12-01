@@ -46,6 +46,7 @@ For more information, see *Information Modal* in the game.
 - **Multi-language Support**: Available in Korean, English, Chinese, German, and Greek.
 - **Game State Persistence**: Your progress is saved automatically.
 - **PVP Battle Mode**: Compete with friends (2-10 players) in real-time with both 5-letter and 6-letter modes to see who guesses the word fastest!
+- **Analytics**: Integrated with Umami Analytics for tracking game data and user behavior.
 
 ## Tech Stack
 
@@ -58,6 +59,7 @@ For more information, see *Information Modal* in the game.
 | Icons | FontAwesome |
 | Build Tool | CRACO (Create React App Configuration Override) |
 | SEO | React Helmet |
+| Analytics | Umami Analytics |
 | Deployment | Vercel, Docker |
 
 ## Docker Deployment
@@ -272,6 +274,23 @@ npm start
 | `REACT_APP_SOCKET_SERVER` | Frontend build-time WebSocket endpoint | `http://localhost:3001` |
 | `PVP_SERVER_PORT` | WebSocket server port | `3001` |
 | `PVP_CLIENT_URL` | Comma-separated CORS origins for the WebSocket server | `*` |
+
+### Analytics Configuration (Optional)
+
+This project integrates [Umami Analytics](https://umami.is/), supporting both Umami Cloud and self-hosted instances.
+
+Configure in `.env` or `.env.local`:
+
+```ini
+# Umami Website ID (required, obtained after creating a project in Umami)
+REACT_APP_UMAMI_WEBSITE_ID=your-website-id
+
+# Umami script URL (optional, defaults to Umami Cloud)
+# For self-hosted instances, use your own URL
+REACT_APP_UMAMI_SRC=https://cloud.umami.is/script.js
+```
+
+> **Note:** If `REACT_APP_UMAMI_WEBSITE_ID` is not configured, analytics will be automatically disabled.
 
 ## Project Structure
 

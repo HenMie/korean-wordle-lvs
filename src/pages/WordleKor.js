@@ -23,6 +23,9 @@ import allDeposedWords from "@assets/all-deposed-words.json";
 import { useLanguage } from "@contexts/LanguageContext";
 import { Helmet } from "react-helmet-async";
 
+// Analytics
+import { trackGameEnd, trackGuessSubmit } from "@utils/analytics";
+
 const modeMap = {
   easy: easyMode,
   imdt: imdtMode,
@@ -242,6 +245,9 @@ function WordleKorPage() {
     const correctCount = updatedColorList.filter((color) => color === "green").length;
     const currentRow = Math.floor((pred.length - 1) / 5);
 
+    // 追踪猜测提交
+    trackGuessSubmit(mode, 5, currentRow + 1);
+
     if (correctCount === 5) {
       // 延迟触发获胜动画，等翻转完成后
       setTimeout(() => {
@@ -250,13 +256,15 @@ function WordleKorPage() {
       
       setTimeout(() => {
         setGotAnswer(true);
+        trackGameEnd(mode, 5, true, currentRow + 1);
       }, 5 * 150 + 1200); // 再等获胜动画
     } else if (pred.length === MAX_PRED_LENGTH) {
       setTimeout(() => {
         setFailAnswer(true);
+        trackGameEnd(mode, 5, false, 6);
       }, 5 * 150 + 500);
     }
-  }, [pred, jsonData, answer, listLen, updateColorPredList, showMessage, lang.center_msg.lack, lang.center_msg.wrong]);
+  }, [pred, jsonData, answer, listLen, updateColorPredList, showMessage, lang.center_msg.lack, lang.center_msg.wrong, mode]);
 
   const keyboardProps = useMemo(() => ({
     pred,

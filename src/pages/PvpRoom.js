@@ -47,6 +47,7 @@ import dictionary6 from '@assets/dictionary-6.json';
 
 import '@styles/pages/_wordleKor.scss';
 import '@styles/pages/_pvpRoom.scss';
+import { trackPvpGameStart, trackPvpGameEnd } from '@utils/analytics';
 
 // 5字模式映射
 const modeMap = {
@@ -227,6 +228,14 @@ function PvpRoom() {
           setRemainingTime(Math.max(0, Math.floor((roomData.endTime - Date.now()) / 1000)));
         }
       }
+
+      // 追踪 PVP 游戏开始
+      trackPvpGameStart({
+        gameMode: roomData.gameMode,
+        wordLength: wordLen,
+        difficulty: roomData.difficulty,
+        playerCount: roomData.players?.length || 0,
+      });
     };
 
     const handleProgressUpdated = ({ playerId, progress, won, nextWord, newWordIndex, room: roomData }) => {
@@ -247,6 +256,22 @@ function PvpRoom() {
     const handleGameFinished = ({ results, room: roomData, reason }) => {
       setGameResults({ results, reason });
       setRemainingTime(null);
+
+      // 追踪 PVP 游戏结束 - 找到当前玩家的结果
+      if (socket && results) {
+        const myResult = results.find(r => r.playerId === socket.id);
+        const myRank = results.findIndex(r => r.playerId === socket.id) + 1;
+        if (myResult) {
+          trackPvpGameEnd({
+            gameMode: roomData.gameMode,
+            wordLength: roomData.wordLength || 5,
+            result: myResult.won ? 'win' : 'lose',
+            rank: myRank,
+            playerCount: results.length,
+            solvedCount: myResult.solvedCount || null,
+          });
+        }
+      }
     };
 
     socket.on('game_started', handleGameStarted);

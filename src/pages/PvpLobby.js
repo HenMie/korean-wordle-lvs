@@ -20,6 +20,7 @@ import { useSocket } from '@contexts/SocketContext';
 import { useLanguage } from '@contexts/LanguageContext';
 
 import '@styles/pages/_pvpLobby.scss';
+import { trackPvpRoomCreate, trackPvpRoomJoin } from '@utils/analytics';
 
 function PvpLobby() {
   const { lang } = useLanguage();
@@ -98,6 +99,13 @@ function PvpLobby() {
         gameMode === 'timed' ? timeLimit : null,
         wordLength
       );
+      // 追踪创建房间
+      trackPvpRoomCreate({
+        gameMode,
+        wordLength,
+        difficulty,
+        timeLimit: gameMode === 'timed' ? timeLimit : null,
+      });
       navigate(`/pvp/room/${response.roomCode}`);
     } catch (err) {
       setLocalError(getErrorMessage(err.message));
@@ -123,6 +131,8 @@ function PvpLobby() {
     try {
       localStorage.setItem('pvp_player_name', playerName.trim());
       await joinRoom(roomCode.trim(), playerName.trim());
+      // 追踪加入房间（房间详细信息在加入后才能获取）
+      trackPvpRoomJoin(null, null);
       navigate(`/pvp/room/${roomCode.trim()}`);
     } catch (err) {
       setLocalError(getErrorMessage(err.message));
