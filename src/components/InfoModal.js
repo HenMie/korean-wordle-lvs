@@ -75,7 +75,7 @@ const InfoModal = ({ onClose }) => {
 
         <div className="navigation">
           {currentPage === 1 && (
-            <button className="prev--btn" onClick={firstPage}>
+            <button className="prev--btn try-btn" onClick={firstPage}>
               {lang.button.example}
             </button>
           )}
