@@ -1,9 +1,5 @@
 window.__RUNTIME_CONFIG__ = {
   UMAMI_WEBSITE_ID: "",
-  UMAMI_SRC: "",
-  UMAMI_API_URL: "",
-  UMAMI_API_TOKEN: "",
-  ADMIN_USERNAME: "",
-  ADMIN_PASSWORD: ""
+  UMAMI_SRC: ""
 };
 

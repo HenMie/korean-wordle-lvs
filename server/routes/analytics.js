@@ -64,7 +64,8 @@ router.get('/auth/status', (req, res) => {
 const getUmamiConfig = () => ({
   apiUrl: process.env.UMAMI_API_URL || '',
   apiToken: process.env.UMAMI_API_TOKEN || '',
-  websiteId: process.env.UMAMI_WEBSITE_ID || '',
+  // 与前端共用同一个网站 ID 配置
+  websiteId: process.env.REACT_APP_UMAMI_WEBSITE_ID || '',
 });
 
 // 检查配置是否完整
@@ -129,7 +130,7 @@ router.get('/status', (req, res) => {
     configured: isConfigured(),
     hasApiUrl: !!process.env.UMAMI_API_URL,
     hasApiToken: !!process.env.UMAMI_API_TOKEN,
-    hasWebsiteId: !!process.env.UMAMI_WEBSITE_ID,
+    hasWebsiteId: !!process.env.REACT_APP_UMAMI_WEBSITE_ID,
   });
 });
 

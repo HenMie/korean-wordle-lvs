@@ -3,8 +3,10 @@
  * WebSocket server for real-time multiplayer Wordle
  */
 
-// 从项目根目录加载 .env 文件
-require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
+// 加载 .env 文件（优先当前目录，然后项目根目录）
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 const express = require('express');
 const { createServer } = require('http');

@@ -261,7 +261,7 @@ function AdminDashboard() {
   const fetchData = useCallback(async () => {
     const configured = await isApiConfigured();
     if (!configured) {
-      setError('Umami API 未配置，请在服务器环境变量中设置 UMAMI_API_URL、UMAMI_API_TOKEN 和 UMAMI_WEBSITE_ID');
+      setError('Umami API 未配置，请在服务器环境变量中设置 REACT_APP_UMAMI_WEBSITE_ID、UMAMI_API_URL 和 UMAMI_API_TOKEN');
       setLoading(false);
       return;
     }
